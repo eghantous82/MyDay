@@ -1,0 +1,4 @@
+{
+    "cmake.sourceDirectory": "C:/dev/MyDay/MockEink",
+     "cmake.buildDirectory": "${workspaceFolder}/MockEink/build"
+}
