@@ -14,10 +14,15 @@ find_package(OpenCV REQUIRED)
 find_package(CURL REQUIRED)
 
 # --- Build the executable ---
+add_executable(epaper_sim main.cpp)  # main.cpp is the minimal required source
 
-# Add your executable and specify the source files.
-add_executable(epaper_sim main.cpp MockEpaperDisplay.cpp Adafruit_GFX.cpp)
-
+target_sources(epaper_sim PRIVATE
+    MockEpaperDisplay.cpp
+    Adafruit_GFX.cpp
+    MockDataRetriever.cpp
+    # ...other sources...
+    ../lib/MlbApi.cpp
+)
 # --- Link the executable to the libraries ---
 
 # Link the executable with OpenCV libraries.
@@ -31,4 +36,6 @@ target_link_libraries(epaper_sim PRIVATE
 target_include_directories(epaper_sim PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${CURL_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib  # Include the lib directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/ArduinoJson/src  # ArduinoJson headers
 )

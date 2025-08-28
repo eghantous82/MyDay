@@ -8,6 +8,12 @@ MockEpaperDisplay::MockEpaperDisplay(int16_t w, int16_t h) : Adafruit_GFX(w, h),
     buffer.resize(w * h, 0);
 }
 
+void MockEpaperDisplay::printString(const std::string& str) {
+    for (char c : str) {
+        write(static_cast<uint8_t>(c));
+    }
+}
+
 void MockEpaperDisplay::drawPixel(int16_t x, int16_t y, uint16_t color) {
     if ((x < 0) || (x >= _width) || (y < 0) || (y >= _height)) return;
     buffer[x + y * _width] = (color > 0) ? 255 : 0;
