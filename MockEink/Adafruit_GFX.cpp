@@ -56,7 +56,18 @@ void Adafruit_GFX::invertDisplay(bool i) {
 }
 
 void Adafruit_GFX::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
-    // Empty stub to satisfy the linker.
+    // Bresenham's line algorithm
+    int16_t dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int16_t dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int16_t err = dx + dy, e2;
+
+    while (true) {
+        drawPixel(x0, y0, color);
+        if (x0 == x1 && y0 == y1) break;
+        e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; }
+        if (e2 <= dx) { err += dx; y0 += sy; }
+    }
 }
 
 // New stubs from your latest error list

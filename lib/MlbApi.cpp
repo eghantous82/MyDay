@@ -16,7 +16,7 @@ void MlbApi::getStandings(IDataRetriever& retriever, const std::string& league, 
             std::string name = team["Name"] | "";
             if (name == "All Stars") continue;
             TeamStanding s;
-            s.Team = name;
+                s.Team = team["Key"] | "";
             s.Wins = team["Wins"] | 0;
             s.Losses = team["Losses"] | 0;
             s.GamesBack = team["GamesBehind"] | 0.0f;
@@ -41,7 +41,7 @@ void MlbApi::getAlDivisionLeaders(IDataRetriever& retriever,  JsonDocument& doc,
             // If this division is not in the map or this team has more wins, update
             if (bestByDivision.find(division) == bestByDivision.end() || wins > bestByDivision[division].Wins) {
                 TeamStanding s;
-                s.Team = name;
+                    s.Team = team["Key"] | "";
                 s.Wins = wins;
                 s.Losses = team["Losses"] | 0;
                 bestByDivision[division] = s;
