@@ -3,5 +3,6 @@
 class IDataRetriever {
 public:
     virtual ~IDataRetriever() {}
-    virtual std::string getMlbData(const std::string& url) = 0;
+    virtual std::string getMlbData(const std::string& url, const std::string& apiKey) = 0;
+    virtual std::string getStockInfo(const std::string& url, const std::string& apiKey) = 0;
 };

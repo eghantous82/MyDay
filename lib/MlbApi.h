@@ -12,14 +12,18 @@ public:
         int Losses;
         float GamesBack;
     };
+
+    MlbApi(const std::string& apiKey = "") : _apiKey(apiKey) {}
+
     void getStandings(IDataRetriever& retriever,
         const std::string& league,
         const std::string& division,
         std::vector<TeamStanding>& divisionStandings,
         std::vector<TeamStanding>& alDivisionLeaders);
 
-
+private:
     // Returns the top team in each AL division (East, Central, West)
     void getAlDivisionLeaders(IDataRetriever& retriever, JsonDocument& doc, std::vector<TeamStanding>& alDivisionLeaders);
     
+    std::string _apiKey;
 };
