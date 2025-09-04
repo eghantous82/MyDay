@@ -67,3 +67,42 @@ std::string MockDataRetriever::getStockInfo(const std::string& url, const std::s
     }
     return readBuffer;
 }
+
+std::string MockDataRetriever::getGoogleTasks(const std::string& url)
+{
+    CURL* curl = curl_easy_init();
+    std::string response;
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Follow HTTP redirects
+        CURLcode res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+            response = "";
+        }
+        curl_easy_cleanup(curl);
+    }
+
+    return response;
+}
+
+std::string MockDataRetriever::getBlynkValue(const std::string& url)
+{
+    CURL* curl = curl_easy_init();
+    std::string response;
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        CURLcode res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+            response = "";
+        }
+        curl_easy_cleanup(curl);
+    }
+
+    return response;
+}

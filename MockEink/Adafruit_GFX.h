@@ -13,6 +13,10 @@
 #include "Adafruit_I2CDevice.h"
 #include "Adafruit_SPIDevice.h"
 
+// Define colors to match GxEPD2
+#define GxEPD_BLACK 0xFFFF
+#define GxEPD_WHITE 0x0000
+
 /// A generic graphics superclass that can handle all sorts of drawing. At a
 /// minimum you can subclass and provide drawPixel(). At a maximum you can do a
 /// ton of overriding to optimize. Used for any/all Adafruit displays!
@@ -36,6 +40,7 @@ public:
   // These MAY be overridden by the subclass to provide device-specific
   // optimized code.  Otherwise 'generic' versions are used.
   virtual void startWrite(void);
+  virtual void printString(const std::string& str) = 0;
   virtual void writePixel(int16_t x, int16_t y, uint16_t color);
   virtual void writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h,
                              uint16_t color);

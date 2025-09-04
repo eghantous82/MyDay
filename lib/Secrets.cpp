@@ -30,3 +30,9 @@ std::string Secrets::getMarketApiKey() {
 		return _doc["rapidapi"].as<std::string>();
 	return "";
 }
+
+std::string Secrets::getGoogleTasksUrl() {
+    if (_doc.containsKey("googleTasks"))
+        return _doc["googleTasks"].as<std::string>();
+    return "";
+} 

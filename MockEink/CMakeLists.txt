@@ -20,6 +20,8 @@ target_sources(epaper_sim PRIVATE
     ../lib/MarketApi.cpp
     ../lib/BlynkApi.cpp
     ../lib/Secrets.cpp
+    ../lib/Application.cpp
+    ../lib/GoogleScriptApi.cpp
 )
 
 # Compiler options (disable warning C4180 for MSVC)

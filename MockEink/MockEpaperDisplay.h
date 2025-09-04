@@ -15,7 +15,7 @@ public:
 
     // Override the virtual write method from the Print class
     size_t write(uint8_t c) override;
-    void printString(const std::string& str);
+    void printString(const std::string& str) override;
 
     void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) override;
     void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color) override;

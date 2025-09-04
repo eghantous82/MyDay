@@ -7,4 +7,7 @@ public:
 
     std::string getStockInfo(const std::string& url, const std::string& apiKey) override;
 
+    std::string getGoogleTasks(const std::string& url) override;
+
+    std::string getBlynkValue(const std::string& url) override;
 };
