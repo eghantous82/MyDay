@@ -5,7 +5,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include <curl/curl.h>
 
 // Helper function for libcurl to write response data to a std::string
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {

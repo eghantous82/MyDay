@@ -1,13 +1,15 @@
 #ifdef _WIN32
 #include "../MockEink/Adafruit_GFX.h"
+#else
+#include <Adafruit_GFX.h>
 #endif
 
 #include <vector>
-#include "MarketApi.h"
-#include "BlynkApi.h"
-#include "MlbApi.h"
-#include "Secrets.h"
-#include "GoogleScriptApi.h"
+#include "Api/src/MarketApi.h"
+#include "Api/src/BlynkApi.h"
+#include "Api/src/MlbApi.h"
+#include "Secrets/src/Secrets.h"
+#include "Api/src/GoogleScriptApi.h"
 
 #pragma once
 

@@ -7,6 +7,10 @@
 const int WIDTH = 800;
 const int HEIGHT = 480;
 
+#ifdef ARDUINO
+#define printString print
+#include <GxEPD2_BW.h>
+#endif
 void Application::renderScreen(Adafruit_GFX& display) {
 
     // Set the text color to BLACK so it's visible on the white background
@@ -40,7 +44,7 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
             if (i != 0) {
                 oss << " GB: " << std::fixed << std::setprecision(1) << team.GamesBack;
             }
-            display.printString(oss.str());
+            display.printString(oss.str().c_str());
             display.setCursor(5, display.getCursorY() + 20);
         }
     }
@@ -52,7 +56,7 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
         if (!isFirst) {
             oss << " GB: " << std::fixed << std::setprecision(1) << team.GamesBack;
         }
-        display.printString(oss.str());
+        display.printString(oss.str().c_str());
         display.setCursor(5, display.getCursorY() + 20);
         isFirst = false;
     }
@@ -65,7 +69,7 @@ void Application::renderMarketInfo(Adafruit_GFX& display) {
     for (const auto& equity : equities) {
         std::ostringstream oss;
         oss << equity.Name << ": " << (int)equity.Value << " (" << (int)equity.DayChange << ")";
-        display.printString(oss.str());
+        display.printString(oss.str().c_str());
         display.setCursor(WIDTH/2+5, display.getCursorY() + 20);
     }
 }
@@ -73,7 +77,7 @@ void Application::renderMarketInfo(Adafruit_GFX& display) {
 void Application::renderBlynkInfo(Adafruit_GFX& display) {
     std::string blynkValue = getBlynkValue();
     display.setCursor(WIDTH/2 + 5,  HEIGHT/2 + 5);
-    display.printString("Freezer Temp: " + blynkValue);
+    display.printString(std::string("Freezer Temp: " + blynkValue).c_str());
 }
 
 void Application::renderGoogleTasks(Adafruit_GFX& display) {
@@ -81,7 +85,7 @@ void Application::renderGoogleTasks(Adafruit_GFX& display) {
     getGoogleTasks(tasks);
     display.setCursor(5, 5);
     for (const auto& task : tasks) {
-        display.printString(task.title);
+        display.printString(task.title.c_str());
         display.setCursor(5, display.getCursorY() + 20);
     }
 }

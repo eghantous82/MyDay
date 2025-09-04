@@ -1,10 +1,10 @@
 #include "MockEpaperDisplay.h"
 #include "MockDataRetriever.h"
 
-#include "Secrets.h"
+#include "Secrets/src/Secrets.h"
 
-#include "Application.h"
-#include "GoogleScriptApi.h"
+#include "Application/src/Application.h"
+#include "Api/src/GoogleScriptApi.h"
 
 int WIDTH = 800;
 int HEIGHT = 480;

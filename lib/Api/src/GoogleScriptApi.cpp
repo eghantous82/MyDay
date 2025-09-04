@@ -1,7 +1,6 @@
 #include "GoogleScriptApi.h"
 #include <string>
 #include <vector>
-#include <curl/curl.h>
 #include <iostream>
 #include <ArduinoJson.h>
 
