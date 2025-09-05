@@ -1,6 +1,4 @@
 #include "IDataRetriever.h"
-#include <ArduinoJson.h>
-
 #include <vector>
 #pragma once
 

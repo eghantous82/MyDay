@@ -16,12 +16,12 @@ target_sources(epaper_sim PRIVATE
     MockEpaperDisplay.cpp
     Adafruit_GFX.cpp
     MockDataRetriever.cpp
-    ../lib/MlbApi.cpp
-    ../lib/MarketApi.cpp
-    ../lib/BlynkApi.cpp
-    ../lib/Secrets.cpp
-    ../lib/Application.cpp
-    ../lib/GoogleScriptApi.cpp
+    ../lib/Api/src/MlbApi.cpp
+    ../lib/Api/src/MarketApi.cpp
+    ../lib/Api/src/GoogleScriptApi.cpp
+    ../lib/Api/src/BlynkApi.cpp
+    ../lib/Secrets/src/Secrets.cpp
+    ../lib/Application/src/Application.cpp
 )
 
 # Compiler options (disable warning C4180 for MSVC)

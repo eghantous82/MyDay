@@ -1,3 +1,4 @@
+#pragma once
 #ifdef _WIN32
 #include "../MockEink/Adafruit_GFX.h"
 #else
@@ -11,7 +12,7 @@
 #include "Secrets/src/Secrets.h"
 #include "Api/src/GoogleScriptApi.h"
 
-#pragma once
+
 
 class Application {
 public:

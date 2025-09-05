@@ -1,7 +1,7 @@
+#pragma once
 #include <string>
 #include <ArduinoJson.h>
 
-#pragma once
 class Secrets {
 public:
     Secrets(const std::string& secretsFile = "secrets.txt");
@@ -11,5 +11,5 @@ public:
     std::string getGoogleTasksUrl();
 
 private:
-    JsonDocument _doc;
+    ArduinoJson::StaticJsonDocument<1024> _doc;
 };
