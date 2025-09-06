@@ -1,9 +1,10 @@
+#include <ArduinoJson.h>
 #include "MlbApi.h"
 #include <map>
 
 void MlbApi::getStandings(IDataRetriever& retriever, const std::string& league, const std::string& division, std::vector<TeamStanding>& divisionStandings, std::vector<TeamStanding>& alDivisionLeaders) {
     
-    JsonDocument doc;
+    ArduinoJson::JsonDocument doc;
     DeserializationError error = deserializeJson(doc, retriever.getMlbData("https://api.sportsdata.io/v3/mlb/scores/json/Standings/2025", _apiKey));
 
     if (error) {

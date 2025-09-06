@@ -5,7 +5,7 @@
 class BlynkApi {
 public:
 
-    BlynkApi(const std::string& token = "") : _token(token) {}
+    BlynkApi(const std::string& token = "");
 
     // Retrieves the value of a virtual pin from Blynk Cloud using HTTP API
     // Returns empty string on failure

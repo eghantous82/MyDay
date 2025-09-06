@@ -12,6 +12,8 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return size * nmemb;
 }
 
+BlynkApi::BlynkApi(const std::string& token) : _token(token) {}
+
 std::string BlynkApi::getVirtualPinValue(IDataRetriever& retriever) {
     std::string url = "https://blynk.cloud/external/api/get?token=" + _token +"&V1";
     return retriever.getBlynkValue(url);

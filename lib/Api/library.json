@@ -1,0 +1,10 @@
+{
+  "name": "ApiLibrary",
+  "version": "1.0.0",
+  "dependencies": [
+    {
+      "name": "ArduinoJson",
+      "version": "^7.0.0"
+    }
+  ]
+}

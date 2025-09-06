@@ -1,9 +1,8 @@
-#include "IDataRetriever.h"
-
-#include <vector>
 #pragma once
+#include <ArduinoJson.h>
+#include <vector>
 
-class JsonDocument;
+#include "IDataRetriever.h"
 
 class MlbApi {
 public:
@@ -24,7 +23,7 @@ public:
 
 private:
     // Returns the top team in each AL division (East, Central, West)
-    void getAlDivisionLeaders(IDataRetriever& retriever, JsonDocument& doc, std::vector<TeamStanding>& alDivisionLeaders);
+    void getAlDivisionLeaders(IDataRetriever& retriever, ArduinoJson::JsonDocument& doc, std::vector<TeamStanding>& alDivisionLeaders);
     
     std::string _apiKey;
 };

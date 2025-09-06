@@ -1,4 +1,5 @@
 #include "MarketApi.h"
+#include <ArduinoJson.h>
 //std::string res = retriever.getEquityInfo("https://yahoo-finance15.p.rapidapi.com/api/v1/markets/stock/quotes?ticker=%5EIXIC,%5EGSPTSE,%5EGSPC,%5EDJI");
 
 void MarketApi::getEquityInfo(IDataRetriever& retriever,
