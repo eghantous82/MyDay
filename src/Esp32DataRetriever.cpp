@@ -1,24 +1,88 @@
 #include "Esp32DataRetriever.h"
 #include <string>
-
-// Stub implementations for ESP32. Replace with actual HTTP code for ESP32 platform.
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 
 std::string Esp32DataRetriever::getMlbData(const std::string& url, const std::string& apiKey) {
-    // TODO: Implement HTTP GET for ESP32
-    return "";
+    HTTPClient http;
+    std::string readBuffer;
+
+    http.begin(url.c_str()); // Initialize HTTP request
+    http.addHeader("Ocp-Apim-Subscription-Key", apiKey.c_str()); // Add API key header
+
+    int httpCode = http.GET(); // Send GET request
+
+    if (httpCode > 0) {
+        String payload = http.getString();
+        readBuffer = payload.c_str(); // Convert Arduino String to std::string
+        Serial.println("Response: Success");
+    } else {
+        Serial.print("Request failed: ");
+        Serial.println(http.errorToString(httpCode));
+        readBuffer = "";
+    }
+
+    http.end(); // Close connection
+    return readBuffer;
 }
+
 
 std::string Esp32DataRetriever::getStockInfo(const std::string& url, const std::string& apiKey) {
-    // TODO: Implement HTTP GET for ESP32
-    return "";
+    HTTPClient http;
+    std::string readBuffer;
+
+    http.begin(url.c_str()); // Initialize HTTP request
+
+    // Add RapidAPI headers
+    http.addHeader("x-rapidapi-host", "yahoo-finance15.p.rapidapi.com");
+    http.addHeader("x-rapidapi-key", apiKey.c_str());
+
+    int httpCode = http.GET(); // Send GET request
+
+    if (httpCode > 0) {
+        String payload = http.getString();
+        readBuffer = payload.c_str(); // Convert Arduino String to std::string
+        Serial.println("Response: Success");
+    } else {
+        Serial.print("Request failed: ");
+        Serial.println(http.errorToString(httpCode));
+        readBuffer = "";
+    }
+
+    http.end(); // Close connection
+    return readBuffer;
 }
 
+
 std::string Esp32DataRetriever::getBlynkValue(const std::string& url) {
-    // TODO: Implement HTTP GET for ESP32
-    return "";
+    HTTPClient http;
+    std::string response;
+
+    http.begin(url.c_str()); // Initialize HTTP request
+    int httpCode = http.GET(); // Send GET request
+
+    if (httpCode > 0) {
+        // Request succeeded
+        String payload = http.getString();
+        response = payload.c_str(); // Convert Arduino String to std::string
+    } else {
+        // Request failed
+        response = "";
+    }
+
+    http.end(); // Close connection
+    return response;
 }
 
 std::string Esp32DataRetriever::getGoogleTasks(const std::string& url) {
-    // TODO: Implement HTTP GET for ESP32
-    return "";
+    HTTPClient http;
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    if (!http.begin(url.c_str())) {
+      return "Junx";
+    } 
+    int returnCode = http.GET();
+    String response = http.getString();  // Print full response body
+    http.end();
+    return response.c_str();
 }

@@ -4,12 +4,16 @@
 
 class Secrets {
 public:
+#ifndef ARDUINO
     Secrets(const std::string& secretsFile = "secrets.txt");
+#else
+    Secrets(const std::string& jsonString);
+#endif
     std::string getBlynkAuthToken();
     std::string getMlbApiKey();
     std::string getMarketApiKey();
     std::string getGoogleTasksUrl();
 
 private:
-    ArduinoJson::StaticJsonDocument<1024> _doc;
+    ArduinoJson::JsonDocument _doc;
 };

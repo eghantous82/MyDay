@@ -6,7 +6,7 @@
 
 const int WIDTH = 800;
 const int HEIGHT = 480;
-
+const int FONT_HEIGHT = 20;
 #ifdef ARDUINO
 #define printString print
 #include <GxEPD2_BW.h>
@@ -32,7 +32,7 @@ void Application::renderScreen(Adafruit_GFX& display) {
 void Application::renderMlbInfo(Adafruit_GFX& display) {
     std::vector<MlbApi::TeamStanding> alStandings, alEastStandings;
     getMlbInfo(alStandings, alEastStandings);
-    display.setCursor(5, HEIGHT/2 + 5);
+    display.setCursor(5, HEIGHT/2 + FONT_HEIGHT);
     if (!alStandings.empty()) {
         int leaderWins = alStandings[0].Wins;
         int leaderLosses = alStandings[0].Losses;
@@ -65,7 +65,7 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
 void Application::renderMarketInfo(Adafruit_GFX& display) {
     std::vector<MarketApi::EquityInfo> equities;
     getMarketInfo(equities);
-    display.setCursor(WIDTH/2+5, 5);
+    display.setCursor(WIDTH/2+5, FONT_HEIGHT);
     for (const auto& equity : equities) {
         std::ostringstream oss;
         oss << equity.Name << ": " << (int)equity.Value << " (" << (int)equity.DayChange << ")";
@@ -76,14 +76,14 @@ void Application::renderMarketInfo(Adafruit_GFX& display) {
 
 void Application::renderBlynkInfo(Adafruit_GFX& display) {
     std::string blynkValue = getBlynkValue();
-    display.setCursor(WIDTH/2 + 5,  HEIGHT/2 + 5);
+    display.setCursor(WIDTH/2 + 5,  HEIGHT/2 + FONT_HEIGHT);
     display.printString(std::string("Freezer Temp: " + blynkValue).c_str());
 }
 
 void Application::renderGoogleTasks(Adafruit_GFX& display) {
     std::vector<GoogleScriptApi::Task> tasks;
     getGoogleTasks(tasks);
-    display.setCursor(5, 5);
+    display.setCursor(5, FONT_HEIGHT);
     for (const auto& task : tasks) {
         display.printString(task.title.c_str());
         display.setCursor(5, display.getCursorY() + 20);

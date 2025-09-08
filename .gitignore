@@ -8,3 +8,4 @@ MockEink/build/
 
 # Ignore secrets file
 secrets.json
+src/SecretTokens.h
