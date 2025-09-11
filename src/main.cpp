@@ -6,6 +6,14 @@
 #include "Secrets.h"
 #include "Esp32DataRetriever.h"
 
+
+void syncTime() {
+  configTime(-4 * 3600, 0, "pool.ntp.org", "time.nist.gov"); // EDT = UTC-4
+  while (time(nullptr) < 100000) {
+    delay(500);
+  }
+}
+
 GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(/*CS=*/3, /*DC=*/5, /*RST=*/2, /*BUSY=*/4));
 void setup() {
   delay(2000); // Wait for the display to stabilize
@@ -20,6 +28,7 @@ void setup() {
       delay(500);
   }
 
+  syncTime();
   Secrets secrets(SECRET_TOKENS);
   Esp32DataRetriever retriever;
   Application app(retriever, secrets);
@@ -35,6 +44,11 @@ void setup() {
     app.renderScreen(display);
   } while (display.nextPage());
   
+  display.hibernate(); // Save power
+
+  // Sleep for 30 minutes (in microseconds)
+  esp_sleep_enable_timer_wakeup(30ULL * 60ULL * 1000000ULL);
+  esp_deep_sleep_start();
 }
 
 void loop() {

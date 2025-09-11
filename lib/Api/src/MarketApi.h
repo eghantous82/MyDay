@@ -1,6 +1,8 @@
+#pragma once
 #include "IDataRetriever.h"
 #include <vector>
-#pragma once
+#include <map>
+#include <string>
 
 class MarketApi {
 public:
@@ -12,7 +14,9 @@ public:
 
     MarketApi(const std::string& apiKey = "") : _apiKey(apiKey) {}
 
-    void getEquityInfo(IDataRetriever& retriever,
+    void getEquityInfo(
+        std::map<std::string, std::string>& equitiesMap,
+        IDataRetriever& retriever,
         std::vector<EquityInfo>& equities);
 private:
     std::string _apiKey;    

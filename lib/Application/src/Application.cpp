@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <map>
 
 const int WIDTH = 800;
 const int HEIGHT = 480;
@@ -26,6 +27,17 @@ void Application::renderScreen(Adafruit_GFX& display) {
     renderMarketInfo(display);
     renderMlbInfo(display);
     renderBlynkInfo(display);
+
+    // Display the last update time in the bottom right corner
+    display.setCursor(WIDTH - 100, HEIGHT - FONT_HEIGHT);
+    time_t now = time(nullptr);
+    struct tm* timeInfo = localtime(&now);
+
+    char timeStr[16];
+    strftime(timeStr, sizeof(timeStr), "%H:%M", timeInfo); // 24-hour format
+
+    display.printString(timeStr);
+
 }
 
 
@@ -98,8 +110,17 @@ void Application::getGoogleTasks(std::vector<GoogleScriptApi::Task>& tasks)
 
 void Application::getMarketInfo(std::vector<MarketApi::EquityInfo>& equities)
 {
+    std::map<std::string, std::string> stockSymbols = {
+        {"^IXIC", "NASDAQ"},
+        {"^GSPTSE", "TSX"},
+        {"^GSPC", "S&P 500"},
+        {"^DJI", "DOW"},
+        {"VGRO.TO", "VGRO"},
+        {"TFII.TO", "TFII"},
+        {"BEPC.TO", "BEPC"}
+    };
     MarketApi marketApi(_secrets.getMarketApiKey());
-    marketApi.getEquityInfo(_retriever, equities);
+    marketApi.getEquityInfo(stockSymbols, _retriever, equities);
 }
 
 void Application::getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
