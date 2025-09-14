@@ -5,10 +5,25 @@
 void MlbApi::getStandings(IDataRetriever& retriever, const std::string& league, const std::string& division, std::vector<TeamStanding>& divisionStandings, std::vector<TeamStanding>& alDivisionLeaders) {
     
     ArduinoJson::JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, retriever.getMlbData("https://api.sportsdata.io/v3/mlb/scores/json/Standings/2025", _apiKey));
+    std::string mlbData = retriever.getMlbData("https://api.sportsdata.io/v3/mlb/scores/json/Standings/2025", _apiKey);
+    if(mlbData.empty()) {
+        TeamStanding errorTeam;
+        errorTeam.Team = "Error retrieving standings";
+        errorTeam.Wins = 0;
+        errorTeam.Losses = 0;
+        errorTeam.GamesBack = 0.0f;
+        divisionStandings.push_back(errorTeam);
+        return;
+    }
+    DeserializationError error = deserializeJson(doc, mlbData);
 
     if (error) {
-        // handle error if needed
+        TeamStanding errorTeam;
+        errorTeam.Team = "Error parsing standings";
+        errorTeam.Wins = 0;
+        errorTeam.Losses = 0;
+        errorTeam.GamesBack = 0.0f;
+        divisionStandings.push_back(errorTeam);
         return;
     }
 
@@ -32,7 +47,6 @@ void MlbApi::getAlDivisionLeaders(IDataRetriever& retriever,  JsonDocument& doc,
 
     // Map to hold the best team for each division
     std::map<std::string, TeamStanding> bestByDivision;
-    std::map<std::string, std::pair<int, int>> leaderRecordByDivision;
 
     // First pass: find the leader for each division
     for (JsonObject team : doc.as<JsonArray>()) {
@@ -49,7 +63,6 @@ void MlbApi::getAlDivisionLeaders(IDataRetriever& retriever,  JsonDocument& doc,
                 s.Wins = wins;
                 s.Losses = losses;
                 bestByDivision[division] = s;
-                leaderRecordByDivision[division] = std::make_pair(wins, losses);
             }
         }
     }
@@ -66,10 +79,14 @@ void MlbApi::getAlDivisionLeaders(IDataRetriever& retriever,  JsonDocument& doc,
         }
     }
 
-    // Assign GamesBack for each division leader relative to the overall AL leader
     for (auto& pair : bestByDivision) {
         TeamStanding& leader = pair.second;
-        leader.GamesBack = ((maxWins - leader.Wins) + (leader.Losses - minLosses)) / 2.0f;
         alDivisionLeaders.push_back(leader);
     }
+
+    // Sort the vector in descending order of wins
+    std::sort(alDivisionLeaders.begin(), alDivisionLeaders.end(),
+        [](const TeamStanding& a, const TeamStanding& b) {
+            return (a.Wins > b.Wins) || (a.Wins == b.Wins && a.Losses < b.Losses);
+        });
 }

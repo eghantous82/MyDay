@@ -68,7 +68,7 @@ std::string Esp32DataRetriever::getBlynkValue(const std::string& url) {
         response = payload.c_str(); // Convert Arduino String to std::string
     } else {
         // Request failed
-        response = "";
+        response = std::string("Error: ") + std::string(http.errorToString(httpCode).c_str());
     }
 
     http.end(); // Close connection
@@ -79,7 +79,10 @@ std::string Esp32DataRetriever::getGoogleTasks(const std::string& url) {
     HTTPClient http;
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     if (!http.begin(url.c_str())) {
-      return "Junx";
+      return R"({
+        "title": "Error retrieving tasks",
+        "status": "Who cares"
+      })"; // Return default task on failure to connect
     } 
     int returnCode = http.GET();
     String response = http.getString();  // Print full response body

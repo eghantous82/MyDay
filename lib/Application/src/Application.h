@@ -12,8 +12,6 @@
 #include "Secrets/src/Secrets.h"
 #include "Api/src/GoogleScriptApi.h"
 
-
-
 class Application {
 public:
     Application(IDataRetriever& retriever, Secrets& secrets) : _retriever(retriever), _secrets(secrets) {}
@@ -22,14 +20,14 @@ public:
 private:
 
     void renderMlbInfo(Adafruit_GFX& display);
-    void renderMarketInfo(Adafruit_GFX& display);
+    void renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
     void renderBlynkInfo(Adafruit_GFX& display);
-    void renderGoogleTasks(Adafruit_GFX& display);
+    void renderGoogleInfo(Adafruit_GFX& display);
 
-    void getMarketInfo(std::vector<MarketApi::EquityInfo>& equities);
+    void getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve, std::vector<MarketApi::EquityInfo>& equities);
     void getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
     std::vector<MlbApi::TeamStanding>& alEastStandings);
-    void getGoogleTasks(std::vector<GoogleScriptApi::Task>& tasks);
+    void getGoogleInfo(std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> >& googleInfo);
     std::string getBlynkValue();
 
     IDataRetriever& _retriever;

@@ -23,8 +23,7 @@ void Application::renderScreen(Adafruit_GFX& display) {
     display.drawLine(WIDTH/2, 0, WIDTH/2, HEIGHT, GxEPD_BLACK);
     display.drawLine(0, HEIGHT/2, WIDTH, HEIGHT/2, GxEPD_BLACK);
 
-    renderGoogleTasks(display);
-    renderMarketInfo(display);
+    renderGoogleInfo(display);
     renderMlbInfo(display);
     renderBlynkInfo(display);
 
@@ -53,9 +52,7 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
             team.GamesBack = ((leaderWins - team.Wins) + (team.Losses - leaderLosses)) / 2.0f;
             std::ostringstream oss;
             oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses;
-            if (i != 0) {
-                oss << " GB: " << std::fixed << std::setprecision(1) << team.GamesBack;
-            }
+            oss << " GR: " << (162 - team.Wins - team.Losses);
             display.printString(oss.str().c_str());
             display.setCursor(5, display.getCursorY() + 20);
         }
@@ -68,19 +65,21 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
         if (!isFirst) {
             oss << " GB: " << std::fixed << std::setprecision(1) << team.GamesBack;
         }
+        oss << " GR: " << (162 - team.Wins - team.Losses);
         display.printString(oss.str().c_str());
         display.setCursor(5, display.getCursorY() + 20);
         isFirst = false;
     }
 }
 
-void Application::renderMarketInfo(Adafruit_GFX& display) {
+void Application::renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
     std::vector<MarketApi::EquityInfo> equities;
-    getMarketInfo(equities);
+    getMarketInfo(stocksToRetrieve, equities);
     display.setCursor(WIDTH/2+5, FONT_HEIGHT);
     for (const auto& equity : equities) {
         std::ostringstream oss;
-        oss << equity.Name << ": " << (int)equity.Value << " (" << (int)equity.DayChange << ")";
+        oss << std::fixed << std::setprecision(2);
+        oss << equity.Name << ": " << equity.Value << " (" << equity.DayChange << ")";
         display.printString(oss.str().c_str());
         display.setCursor(WIDTH/2+5, display.getCursorY() + 20);
     }
@@ -92,35 +91,33 @@ void Application::renderBlynkInfo(Adafruit_GFX& display) {
     display.printString(std::string("Freezer Temp: " + blynkValue).c_str());
 }
 
-void Application::renderGoogleTasks(Adafruit_GFX& display) {
-    std::vector<GoogleScriptApi::Task> tasks;
-    getGoogleTasks(tasks);
+void Application::renderGoogleInfo(Adafruit_GFX& display) {
+    std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> > googleInfo;
+    getGoogleInfo(googleInfo);
     display.setCursor(5, FONT_HEIGHT);
-    for (const auto& task : tasks) {
+    for (const auto& task : googleInfo.first) {
         display.printString(task.title.c_str());
         display.setCursor(5, display.getCursorY() + 20);
     }
+
+    renderMarketInfo(display, googleInfo.second);
 }
 
-void Application::getGoogleTasks(std::vector<GoogleScriptApi::Task>& tasks)
+void Application::getGoogleInfo(std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> >& googleInfo)
 {
     GoogleScriptApi api(_secrets.getGoogleTasksUrl());
-    tasks = api.getTasks(_retriever);
+    googleInfo = api.getTasksAndStocks(_retriever);
 }
 
-void Application::getMarketInfo(std::vector<MarketApi::EquityInfo>& equities)
+void Application::getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve, std::vector<MarketApi::EquityInfo>& equities)
 {
-    std::map<std::string, std::string> stockSymbols = {
-        {"^IXIC", "NASDAQ"},
-        {"^GSPTSE", "TSX"},
-        {"^GSPC", "S&P 500"},
-        {"^DJI", "DOW"},
-        {"VGRO.TO", "VGRO"},
-        {"TFII.TO", "TFII"},
-        {"BEPC.TO", "BEPC"}
-    };
+    // Symbol to Name map
+    std::map<std::string, std::string> symbolsToNames;
+    for(const auto& stock : stocksToRetrieve) {
+        symbolsToNames[stock.ticker] = stock.displayName;
+    }
     MarketApi marketApi(_secrets.getMarketApiKey());
-    marketApi.getEquityInfo(stockSymbols, _retriever, equities);
+    marketApi.getEquityInfo(symbolsToNames, _retriever, equities);
 }
 
 void Application::getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,

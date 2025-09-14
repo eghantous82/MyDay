@@ -9,19 +9,39 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return size * nmemb;
 }
 
-std::vector<GoogleScriptApi::Task> GoogleScriptApi::getTasks(IDataRetriever& dataRetriever) {
+std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> > GoogleScriptApi::getTasksAndStocks(IDataRetriever& dataRetriever) {
     std::vector<Task> tasks;
+    std::vector<StockInfo> stocks;
+
     std::string response = dataRetriever.getGoogleTasks(_url);
-    if (response.empty()) return tasks;
+    Task emptyTask;
+    emptyTask.title = "Task free since '93";
+    StockInfo emptyStock;
+    emptyStock.ticker = "Error";
+    emptyStock.displayName = "No Stock Info";
+    if (response.empty())
+    {
+        tasks.push_back(emptyTask);
+        stocks.push_back(emptyStock);
+        return std::make_pair(tasks, stocks);
+    }
 
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, response);
     if (error) {
-        std::cerr << "Failed to parse tasks JSON: " << error.c_str() << std::endl;
-        return tasks;
+        Task jsonErrorTask;
+        jsonErrorTask.title = "JSON Error parsing tasks";
+
+        StockInfo jsonErrorStock;
+        jsonErrorStock.ticker = "JSON Error";
+        jsonErrorStock.displayName = "parsing stocks";
+        tasks.push_back(jsonErrorTask);
+        stocks.push_back(jsonErrorStock);
+        return std::make_pair(tasks, stocks);
     }
 
-    for (JsonObject list : doc.as<JsonArray>()) {
+    JsonArray tasksArray = doc["tasks"];
+    for (JsonObject list : tasksArray) {
         for (JsonObject task : list["tasks"].as<JsonArray>()) {
             Task t;
             t.title = task["title"] | "";
@@ -30,5 +50,16 @@ std::vector<GoogleScriptApi::Task> GoogleScriptApi::getTasks(IDataRetriever& dat
             tasks.push_back(t);
         }
     }
-    return tasks;
+    if (tasks.empty()) {
+        tasks.push_back(emptyTask);
+    }
+    JsonArray stocksArray = doc["stocks"];
+    for (JsonObject stock : stocksArray) {
+        StockInfo s;
+        s.ticker = stock["ticker"] | "";
+        s.displayName = stock["displayName"] | "";
+        stocks.push_back(s);
+    }
+    
+    return std::make_pair(tasks, stocks);
 }
