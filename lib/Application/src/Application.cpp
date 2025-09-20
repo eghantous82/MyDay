@@ -41,6 +41,18 @@ void Application::renderScreen(Adafruit_GFX& display) {
 
 
 void Application::renderMlbInfo(Adafruit_GFX& display) {
+
+    time_t currentTime = time(NULL);
+    struct tm* timeinfo = localtime(&currentTime);
+    
+    if (timeinfo->tm_hour < 7) {
+        return;
+    }
+
+    if (difftime(currentTime, _lastRunTime) < 60 * 60 * 4) {
+        return; // Skip if last update was less than 4 hours ago
+    }
+
     std::vector<MlbApi::TeamStanding> alStandings, alEastStandings;
     getMlbInfo(alStandings, alEastStandings);
     display.setCursor(5, HEIGHT/2 + FONT_HEIGHT);
@@ -74,14 +86,37 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
 
 void Application::renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
     std::vector<MarketApi::EquityInfo> equities;
-    getMarketInfo(stocksToRetrieve, equities);
-    display.setCursor(WIDTH/2+5, FONT_HEIGHT);
-    for (const auto& equity : equities) {
-        std::ostringstream oss;
-        oss << std::fixed << std::setprecision(2);
-        oss << equity.Name << ": " << equity.Value << " (" << equity.DayChange << ")";
-        display.printString(oss.str().c_str());
-        display.setCursor(WIDTH/2+5, display.getCursorY() + 20);
+    time_t currentTime = time(NULL);
+    struct tm* timeinfo = localtime(&currentTime);
+    
+    if (timeinfo->tm_wday == 0 || timeinfo->tm_wday == 6) {
+        return; // Skip weekends
+    }
+
+    if (timeinfo->tm_hour < 9 || (timeinfo->tm_hour == 9 && timeinfo->tm_min < 30) ||
+        timeinfo->tm_hour > 16) {
+        return;
+    }
+
+    if (difftime(currentTime, _lastRunTime) < 60 * 60) {
+        return; // Skip if last update was less than 15 minutes ago
+    }
+
+    while(equities.size() == 0)
+    {
+        getMarketInfo(stocksToRetrieve, equities);
+        display.setCursor(WIDTH/2+5, FONT_HEIGHT);
+        for (const auto& equity : equities) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(2);
+            oss << equity.Name << ": " << equity.Value << " (" << equity.DayChange << ")";
+            display.printString(oss.str().c_str());
+            display.setCursor(WIDTH/2+5, display.getCursorY() + 20);
+        }
+        if (equities.size() == 0) {
+            // If no equities were retrieved, wait for a minute before retrying 
+            delay(60000);
+        }
     }
 }
 

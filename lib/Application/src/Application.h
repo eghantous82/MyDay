@@ -6,6 +6,7 @@
 #endif
 
 #include <vector>
+#include <time.h>
 #include "Api/src/MarketApi.h"
 #include "Api/src/BlynkApi.h"
 #include "Api/src/MlbApi.h"
@@ -14,7 +15,10 @@
 
 class Application {
 public:
-    Application(IDataRetriever& retriever, Secrets& secrets) : _retriever(retriever), _secrets(secrets) {}
+    Application(IDataRetriever& retriever, Secrets& secrets, time_t lastRunTime) : 
+        _retriever(retriever),
+        _secrets(secrets),
+        _lastRunTime(lastRunTime) {}
     void renderScreen(Adafruit_GFX& display);
 
 private:
@@ -32,5 +36,6 @@ private:
 
     IDataRetriever& _retriever;
     Secrets&        _secrets;
+    time_t         _lastRunTime;
     
 };
