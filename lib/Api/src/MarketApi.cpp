@@ -43,6 +43,7 @@ void MarketApi::getEquityInfo(
         info.Name = equitiesMap[item["symbol"]];
         info.Value = item["regularMarketPrice"];
         info.DayChange = item["regularMarketChange"];
+        info.FiftyTwoWeekChangePercentage = item["fiftyTwoWeekChangePercent"];
         equities.push_back(info);
     }
 }

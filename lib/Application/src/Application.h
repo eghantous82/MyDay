@@ -15,18 +15,20 @@
 
 class Application {
 public:
-    Application(IDataRetriever& retriever, Secrets& secrets, time_t lastRunTime) : 
+    Application(IDataRetriever& retriever, Secrets& secrets) : 
         _retriever(retriever),
         _secrets(secrets),
-        _lastRunTime(lastRunTime) {}
-    void renderScreen(Adafruit_GFX& display);
+        _lastBlynkRunTime(0),
+        _lastGoogleTaskRunTime(0),
+        _lastMlbRunTime(0),
+        _lastStockInfoRunTime(0) {}
+
+    bool renderMlbInfo(Adafruit_GFX& display);
+    bool renderBlynkInfo(Adafruit_GFX& display);
+    bool renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
+    bool renderMarketInfo(Adafruit_GFX& display, int x, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
 
 private:
-
-    void renderMlbInfo(Adafruit_GFX& display);
-    void renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
-    void renderBlynkInfo(Adafruit_GFX& display);
-    void renderGoogleInfo(Adafruit_GFX& display);
 
     void getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve, std::vector<MarketApi::EquityInfo>& equities);
     void getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
@@ -36,6 +38,9 @@ private:
 
     IDataRetriever& _retriever;
     Secrets&        _secrets;
-    time_t         _lastRunTime;
+    time_t         _lastGoogleTaskRunTime;
+    time_t         _lastStockInfoRunTime;
+    time_t         _lastMlbRunTime;
+    time_t         _lastBlynkRunTime;
     
 };

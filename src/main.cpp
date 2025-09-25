@@ -7,7 +7,30 @@
 #include "Secrets.h"
 #include "Esp32DataRetriever.h"
 
+/**
+ * @brief Represents a single display area with its update schedule.
+ * This struct makes it easy to manage multiple distinct update regions.
+ */
+struct DisplayArea {
+  int16_t x, y, w, h;            // Position and dimensions of the area
+};
 
+const int DISPLAY_AREA_WIDTH = 800 / 2;  // 400
+const int DISPLAY_AREA_HEIGHT = 480 / 2; // 240
+
+DisplayArea displayAreas[] = {
+  // Area 1: Top left (0–399 x 0–239)
+  {0, 0, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT},
+
+  // Area 2: Top right (400–799 x 0–239)
+  {DISPLAY_AREA_WIDTH, 0, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT},
+
+  // Area 3: Bottom left (0–399 x 240–479)
+  {0, DISPLAY_AREA_HEIGHT, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT},
+
+  // Area 4: Bottom right (400–799 x 240–479)
+  {DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT}
+};
 void syncTime() {
   // Configure NTP client with a server and wait for synchronization.
   // The first two parameters are for daylight saving time offset and standard time offset in seconds.
@@ -28,7 +51,9 @@ void syncTime() {
 
 GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(/*CS=*/3, /*DC=*/5, /*RST=*/2, /*BUSY=*/4));
 
-RTC_DATA_ATTR time_t _lastRunTime = 0;
+Secrets secrets(SECRET_TOKENS);
+Esp32DataRetriever retriever;
+Application app(retriever, secrets);
 
 void setup() {
   delay(2000); // Wait for the display to stabilize
@@ -36,21 +61,12 @@ void setup() {
   Serial.begin(115200);
 
   WiFi.begin(WIFI_SSID.c_str(), WIFI_PASSWORD.c_str());
-
-  // Waiting the connection to a router
- 
   while (WiFi.status() != WL_CONNECTED) {
       delay(500);
   }
 
   syncTime();
   
-  // Get the current time for the calculation
-  time_t currentTime = time(NULL);
-
-  Secrets secrets(SECRET_TOKENS);
-  Esp32DataRetriever retriever;
-  Application app(retriever, secrets, _lastRunTime);
   display.init();
   display.setRotation(0); // Landscape
 
@@ -60,18 +76,72 @@ void setup() {
   display.firstPage();
   do {
     display.fillScreen(GxEPD_WHITE);
-    app.renderScreen(display);
   } while (display.nextPage());
   
-  display.hibernate(); // Save power
-
-  _lastRunTime = currentTime;
-
-  // Sleep for 30 minutes (in microseconds)
-  esp_sleep_enable_timer_wakeup(30ULL * 60ULL * 1000000ULL);
-  esp_deep_sleep_start();
 }
 
+#ifdef ARDUINO
+#define printString print
+#include <GxEPD2_BW.h>
+#endif
+
 void loop() {
-  // Nothing here
+  std::vector<GoogleScriptApi::StockInfo> stocksToRetrieve;
+
+  for (int i = 0; i < 4; i++)
+  {
+    Serial.printf("Updating area %d at (%d, %d) size (%d x %d)\n",
+                  i, displayAreas[i].x, displayAreas[i].y,
+                  displayAreas[i].w, displayAreas[i].h);
+
+    // Set partial window for this quadrant
+    display.setPartialWindow(
+      displayAreas[i].x,
+      displayAreas[i].y,
+      displayAreas[i].w,
+      displayAreas[i].h
+    );
+
+    // Prepare to draw only if needed
+    bool updated = false;
+
+    switch (i) {
+      case 0:
+        updated = app.renderGoogleInfo(display, stocksToRetrieve);
+        break;
+      case 1:
+        updated = app.renderMarketInfo(display, displayAreas[i].x + 5, stocksToRetrieve);
+        break;
+      case 2:
+        updated = app.renderMlbInfo(display);
+        break;
+      case 3:
+        updated = app.renderBlynkInfo(display);
+        break;
+    }
+
+    // Only refresh if something was drawn
+    if (updated) {
+      display.firstPage();
+      do {
+        display.fillScreen(GxEPD_WHITE);
+        display.setCursor(displayAreas[i].x + 5, displayAreas[i].y + 20);
+        switch (i) {
+          case 0:
+            app.renderGoogleInfo(display, stocksToRetrieve);
+            break;
+          case 1:
+            app.renderMarketInfo(display, displayAreas[i].x + 5, stocksToRetrieve);
+            break;
+          case 2:
+            app.renderMlbInfo(display);
+            break;
+          case 3:
+            app.renderBlynkInfo(display);
+            break;
+        }
+      } while (display.nextPage());
+    }
+  }
+  delay(1000); // Optional: slow down loop
 }

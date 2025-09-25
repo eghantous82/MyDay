@@ -5,57 +5,29 @@
 #include <iomanip>
 #include <map>
 
-const int WIDTH = 800;
-const int HEIGHT = 480;
 const int FONT_HEIGHT = 20;
 #ifdef ARDUINO
 #define printString print
 #include <GxEPD2_BW.h>
 #endif
-void Application::renderScreen(Adafruit_GFX& display) {
 
-    // Set the text color to BLACK so it's visible on the white background
-    display.setTextColor(GxEPD_BLACK);
-
-    // Fill the screen with white
-    display.fillScreen(GxEPD_WHITE);
-
-    display.drawLine(WIDTH/2, 0, WIDTH/2, HEIGHT, GxEPD_BLACK);
-    display.drawLine(0, HEIGHT/2, WIDTH, HEIGHT/2, GxEPD_BLACK);
-
-    renderGoogleInfo(display);
-    renderMlbInfo(display);
-    renderBlynkInfo(display);
-
-    // Display the last update time in the bottom right corner
-    display.setCursor(WIDTH - 100, HEIGHT - FONT_HEIGHT);
-    time_t now = time(nullptr);
-    struct tm* timeInfo = localtime(&now);
-
-    char timeStr[16];
-    strftime(timeStr, sizeof(timeStr), "%H:%M", timeInfo); // 24-hour format
-
-    display.printString(timeStr);
-
-}
-
-
-void Application::renderMlbInfo(Adafruit_GFX& display) {
+bool Application::renderMlbInfo(Adafruit_GFX& display) {
 
     time_t currentTime = time(NULL);
     struct tm* timeinfo = localtime(&currentTime);
-    
-    if (timeinfo->tm_hour < 7) {
-        return;
-    }
+    if(_lastMlbRunTime != 0) {
+        if (timeinfo->tm_hour < 7) {
+            return false;
+        }
 
-    if (difftime(currentTime, _lastRunTime) < 60 * 60 * 4) {
-        return; // Skip if last update was less than 4 hours ago
+        if (difftime(currentTime, _lastMlbRunTime) < 60 * 60 * 4) {
+            return false; // Skip if last update was less than 4 hours ago
+        }
     }
-
+    _lastMlbRunTime = time(NULL);
     std::vector<MlbApi::TeamStanding> alStandings, alEastStandings;
     getMlbInfo(alStandings, alEastStandings);
-    display.setCursor(5, HEIGHT/2 + FONT_HEIGHT);
+    int x = display.getCursorX();
     if (!alStandings.empty()) {
         int leaderWins = alStandings[0].Wins;
         int leaderLosses = alStandings[0].Losses;
@@ -66,10 +38,10 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
             oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses;
             oss << " GR: " << (162 - team.Wins - team.Losses);
             display.printString(oss.str().c_str());
-            display.setCursor(5, display.getCursorY() + 20);
+            display.setCursor(x, display.getCursorY() + 20);
         }
     }
-    display.setCursor(5, display.getCursorY() + 40);
+    display.setCursor(x, display.getCursorY() + 40);
     bool isFirst = true;
     for (const auto& team : alEastStandings) {
         std::ostringstream oss;
@@ -79,63 +51,90 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
         }
         oss << " GR: " << (162 - team.Wins - team.Losses);
         display.printString(oss.str().c_str());
-        display.setCursor(5, display.getCursorY() + 20);
+        display.setCursor(x, display.getCursorY() + 20);
         isFirst = false;
     }
+
+    return true;
 }
 
-void Application::renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
+bool Application::renderMarketInfo(Adafruit_GFX& display, int x, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
     std::vector<MarketApi::EquityInfo> equities;
     time_t currentTime = time(NULL);
     struct tm* timeinfo = localtime(&currentTime);
+    if(_lastStockInfoRunTime != 0) {
+        
+        if (difftime(currentTime, _lastStockInfoRunTime) < 60 * 15) {
+            return false; // Skip if last update was less than 15 minutes ago
+        }
     
-    if (timeinfo->tm_wday == 0 || timeinfo->tm_wday == 6) {
-        return; // Skip weekends
-    }
+        if (timeinfo->tm_wday == 0 || timeinfo->tm_wday == 6) {
+            return false; // Skip weekends
+        }
 
-    if (timeinfo->tm_hour < 9 || (timeinfo->tm_hour == 9 && timeinfo->tm_min < 30) ||
-        timeinfo->tm_hour > 16) {
-        return;
+        if (timeinfo->tm_hour < 9 || (timeinfo->tm_hour == 9 && timeinfo->tm_min < 30) ||
+            timeinfo->tm_hour > 16) {
+            return false;
+        }
     }
-
-    if (difftime(currentTime, _lastRunTime) < 60 * 60) {
-        return; // Skip if last update was less than 15 minutes ago
-    }
-
+    _lastStockInfoRunTime = time(NULL);
+    Serial.println("Fetching market info...");
     while(equities.size() == 0)
     {
         getMarketInfo(stocksToRetrieve, equities);
-        display.setCursor(WIDTH/2+5, FONT_HEIGHT);
-        for (const auto& equity : equities) {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(2);
-            oss << equity.Name << ": " << equity.Value << " (" << equity.DayChange << ")";
-            display.printString(oss.str().c_str());
-            display.setCursor(WIDTH/2+5, display.getCursorY() + 20);
+        if(equities.size() == 0) {
+            delay(100);
         }
-        if (equities.size() == 0) {
-            // If no equities were retrieved, wait for a minute before retrying 
-            delay(60000);
+        else
+        {
+            for (const auto& equity : equities) {
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(2);
+                oss << equity.Name << ": " << equity.Value << " (" << equity.DayChange << ") (" << equity.FiftyTwoWeekChangePercentage << "%)";
+                display.printString(oss.str().c_str());
+                display.setCursor(x, display.getCursorY() + 20);
+            }
         }
     }
+    return true;
 }
 
-void Application::renderBlynkInfo(Adafruit_GFX& display) {
+bool Application::renderBlynkInfo(Adafruit_GFX& display) {
+    if(_lastBlynkRunTime != 0) {
+        time_t currentTime = time(NULL);
+        if (difftime(currentTime, _lastBlynkRunTime) < 60 * 15) {
+            return false; // Skip if last update was less than 15 minutes ago
+        }
+    }
+    _lastBlynkRunTime = time(NULL);
+    Serial.println("Fetching Blynk info...");
     std::string blynkValue = getBlynkValue();
-    display.setCursor(WIDTH/2 + 5,  HEIGHT/2 + FONT_HEIGHT);
+    display.setCursor(display.getCursorX(), display.getCursorY() + 20);
     display.printString(std::string("Freezer Temp: " + blynkValue).c_str());
+    return true;
 }
 
-void Application::renderGoogleInfo(Adafruit_GFX& display) {
+bool Application::renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
+    if(_lastGoogleTaskRunTime != 0) {
+        time_t currentTime = time(NULL);
+        if (difftime(currentTime, _lastGoogleTaskRunTime) < 60 * 10) {
+            return false; // Skip if last update was less than 15 minutes ago
+        }
+
+    }
+    _lastGoogleTaskRunTime = time(NULL);
+    Serial.println("Fetching Google info...");
     std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> > googleInfo;
     getGoogleInfo(googleInfo);
+    Serial.printf("Retrieved %d tasks and %d stocks\n", (int)googleInfo.first.size(), (int)googleInfo.second.size());
     display.setCursor(5, FONT_HEIGHT);
     for (const auto& task : googleInfo.first) {
         display.printString(task.title.c_str());
         display.setCursor(5, display.getCursorY() + 20);
     }
 
-    renderMarketInfo(display, googleInfo.second);
+    stocksToRetrieve = googleInfo.second;
+    return true;
 }
 
 void Application::getGoogleInfo(std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> >& googleInfo)

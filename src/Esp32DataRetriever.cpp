@@ -83,8 +83,10 @@ std::string Esp32DataRetriever::getGoogleTasks(const std::string& url) {
         "title": "Error retrieving tasks",
         "status": "Who cares"
       })"; // Return default task on failure to connect
-    } 
+    }
+    Serial.println("Fetching Google Tasks..."); 
     int returnCode = http.GET();
+    Serial.printf("HTTP return code: %d\n", returnCode);
     String response = http.getString();  // Print full response body
     http.end();
     return response.c_str();

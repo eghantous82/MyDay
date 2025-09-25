@@ -10,6 +10,7 @@ public:
         std::string Name;
         float Value;
         float DayChange;
+        float FiftyTwoWeekChangePercentage;
     };
 
     MarketApi(const std::string& apiKey = "") : _apiKey(apiKey) {}
