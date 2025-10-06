@@ -23,9 +23,9 @@ void MarketApi::getEquityInfo(
 {
     std::string commaSeparatedTickers = tickerSymbolsToCsv(equitiesMap);
     std::string url = "https://yahoo-finance15.p.rapidapi.com/api/v1/markets/stock/quotes?ticker=" + commaSeparatedTickers;
-    Serial.println(url.c_str());
+    retriever.logToGoogle("Retrieving url: " + url);
     std::string json = retriever.getStockInfo(url, _apiKey);
-
+    retriever.logToGoogle("Received JSON: " + json);
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, json);
 

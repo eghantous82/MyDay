@@ -13,6 +13,7 @@ public:
     std::string getMlbApiKey();
     std::string getMarketApiKey();
     std::string getGoogleTasksUrl();
+    std::string getLoggerUrl();
 
 private:
     ArduinoJson::JsonDocument _doc;

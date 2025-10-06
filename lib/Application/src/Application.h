@@ -15,18 +15,27 @@
 
 class Application {
 public:
-    Application(IDataRetriever& retriever, Secrets& secrets) : 
+    Application(IDataRetriever& retriever, Secrets& secrets, 
+        unsigned int quadrantWidth,
+        unsigned int quadrantHeight) : 
         _retriever(retriever),
         _secrets(secrets),
         _lastBlynkRunTime(0),
         _lastGoogleTaskRunTime(0),
         _lastMlbRunTime(0),
-        _lastStockInfoRunTime(0) {}
+        _lastStockInfoRunTime(0),
+        _quadrantHeight(quadrantHeight),
+        _quadrantWidth(quadrantWidth) {}
 
-    bool renderMlbInfo(Adafruit_GFX& display);
-    bool renderBlynkInfo(Adafruit_GFX& display);
-    bool renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
-    bool renderMarketInfo(Adafruit_GFX& display, int x, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
+    bool shouldUpdateMlb();
+    bool shouldUpdateBlynk();
+    bool shouldUpdateGoogle();
+    bool shouldUpdateMarket();
+
+    void renderMlbInfo(Adafruit_GFX& display);
+    void renderBlynkInfo(Adafruit_GFX& display);
+    void renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
+    void renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
 
 private:
 
@@ -42,5 +51,7 @@ private:
     time_t         _lastStockInfoRunTime;
     time_t         _lastMlbRunTime;
     time_t         _lastBlynkRunTime;
+    unsigned int   _quadrantWidth;
+    unsigned int   _quadrantHeight;
     
 };

@@ -17,7 +17,7 @@ public:
         std::string displayName;
     };
 
-    GoogleScriptApi(const std::string& url) : _url(url){}
+    GoogleScriptApi(const std::string& url): _url(url) {}
 
     // Parses the JSON and returns a vector of Tasks
     std::pair<std::vector<Task>, std::vector<StockInfo> > getTasksAndStocks(IDataRetriever& dataRetriever);

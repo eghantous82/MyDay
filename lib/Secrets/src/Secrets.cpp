@@ -30,3 +30,7 @@ std::string Secrets::getMarketApiKey() {
 std::string Secrets::getGoogleTasksUrl() {
 	return _doc["googleTasks"].as<std::string>();
 } 
+
+std::string Secrets::getLoggerUrl() {
+	return _doc["logger"].as<std::string>();
+}

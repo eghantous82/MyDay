@@ -7,6 +7,11 @@
 #include "Secrets.h"
 #include "Esp32DataRetriever.h"
 
+#ifdef ARDUINO
+#define printString print
+#include <GxEPD2_BW.h>
+#endif
+
 /**
  * @brief Represents a single display area with its update schedule.
  * This struct makes it easy to manage multiple distinct update regions.
@@ -31,6 +36,7 @@ DisplayArea displayAreas[] = {
   // Area 4: Bottom right (400–799 x 240–479)
   {DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT}
 };
+
 void syncTime() {
   // Configure NTP client with a server and wait for synchronization.
   // The first two parameters are for daylight saving time offset and standard time offset in seconds.
@@ -52,8 +58,8 @@ void syncTime() {
 GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(/*CS=*/3, /*DC=*/5, /*RST=*/2, /*BUSY=*/4));
 
 Secrets secrets(SECRET_TOKENS);
-Esp32DataRetriever retriever;
-Application app(retriever, secrets);
+Esp32DataRetriever retriever(secrets.getLoggerUrl());
+Application app(retriever, secrets, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT);
 
 void setup() {
   delay(2000); // Wait for the display to stabilize
@@ -80,11 +86,6 @@ void setup() {
   
 }
 
-#ifdef ARDUINO
-#define printString print
-#include <GxEPD2_BW.h>
-#endif
-
 void loop() {
   std::vector<GoogleScriptApi::StockInfo> stocksToRetrieve;
 
@@ -103,25 +104,25 @@ void loop() {
     );
 
     // Prepare to draw only if needed
-    bool updated = false;
+    bool update = false;
 
     switch (i) {
       case 0:
-        updated = app.renderGoogleInfo(display, stocksToRetrieve);
+        update = app.shouldUpdateGoogle();
         break;
       case 1:
-        updated = app.renderMarketInfo(display, displayAreas[i].x + 5, stocksToRetrieve);
+        update = app.shouldUpdateMarket();
         break;
       case 2:
-        updated = app.renderMlbInfo(display);
+        update = app.shouldUpdateMlb();
         break;
       case 3:
-        updated = app.renderBlynkInfo(display);
+        update = app.shouldUpdateBlynk();
         break;
     }
 
     // Only refresh if something was drawn
-    if (updated) {
+    if (update) {
       display.firstPage();
       do {
         display.fillScreen(GxEPD_WHITE);
@@ -131,7 +132,7 @@ void loop() {
             app.renderGoogleInfo(display, stocksToRetrieve);
             break;
           case 1:
-            app.renderMarketInfo(display, displayAreas[i].x + 5, stocksToRetrieve);
+            app.renderMarketInfo(display, stocksToRetrieve);
             break;
           case 2:
             app.renderMlbInfo(display);
