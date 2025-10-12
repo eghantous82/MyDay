@@ -16,10 +16,7 @@ std::string Esp32DataRetriever::getMlbData(const std::string& url, const std::st
     if (httpCode > 0) {
         String payload = http.getString();
         readBuffer = payload.c_str(); // Convert Arduino String to std::string
-        Serial.println("Response: Success");
     } else {
-        Serial.print("Request failed: ");
-        Serial.println(http.errorToString(httpCode));
         readBuffer = "";
     }
 
@@ -43,10 +40,7 @@ std::string Esp32DataRetriever::getStockInfo(const std::string& url, const std::
     if (httpCode > 0) {
         String payload = http.getString();
         readBuffer = payload.c_str(); // Convert Arduino String to std::string
-        Serial.println("Response: Success");
     } else {
-        Serial.print("Request failed: ");
-        Serial.println(http.errorToString(httpCode));
         readBuffer = "";
     }
 
@@ -84,12 +78,8 @@ std::string Esp32DataRetriever::getGoogleTasks(const std::string& url) {
         "status": "Who cares"
       })"; // Return default task on failure to connect
     }
-    Serial.println("Fetching Google Tasks..."); 
     int returnCode = http.GET();
-    Serial.printf("HTTP return code: %d\n", returnCode);
     String response = http.getString();  // Print full response body
-    String message = String("Google Tasks response code: ") + String(returnCode);
-    logToGoogle(message.c_str());
     http.end();
     return response.c_str();
 }
@@ -98,16 +88,11 @@ void Esp32DataRetriever::logToGoogle(const std::string& message) {
     HTTPClient http;
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     if (!http.begin(_logUrl.c_str())) {
-      Serial.println("Failed to connect to logging URL");
       return; // Return if failure to connect
     }
-    Serial.println("Logging message to Google..."); 
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Accept", "*/*");
     String jsonMessage = String("{\"message\":\"") + String(message.c_str()) + String("\"}");
     int returnCode = http.POST(jsonMessage);
-    Serial.printf("HTTP return code for log: %d\n", returnCode);
-    String response = http.getString();  // Print full response body
-    Serial.println("Log response: " + response);
     http.end();
 }

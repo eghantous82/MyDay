@@ -25,7 +25,7 @@ std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::Stock
         stocks.push_back(emptyStock);
         return std::make_pair(tasks, stocks);
     }
-    dataRetriever.logToGoogle("Received Tasks JSON: " + response);
+    dataRetriever.logToGoogle("Received Google Information: " + response);
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, response);
     if (error) {

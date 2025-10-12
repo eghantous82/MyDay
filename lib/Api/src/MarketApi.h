@@ -16,7 +16,7 @@ public:
     MarketApi(const std::string& apiKey = "") : _apiKey(apiKey) {}
 
     void getEquityInfo(
-        std::map<std::string, std::string>& equitiesMap,
+        const std::map<std::string, std::string>& equitiesMap,
         IDataRetriever& retriever,
         std::vector<EquityInfo>& equities);
 private:

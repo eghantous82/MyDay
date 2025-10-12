@@ -72,13 +72,14 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
     _lastMlbRunTime = time(NULL);
     std::vector<MlbApi::TeamStanding> alStandings, alEastStandings;
     getMlbInfo(alStandings, alEastStandings);
+    alStandings.reserve(10); // Typical division size
+    alEastStandings.reserve(10);
     int x = display.getCursorX();
     int y = display.getCursorY() - FONT_HEIGHT;
     if (!alStandings.empty()) {
         int leaderWins = alStandings[0].Wins;
         int leaderLosses = alStandings[0].Losses;
-        for (size_t i = 0; i < alStandings.size(); ++i) {
-            auto& team = alStandings[i];
+        for (auto& team : alStandings) {
             team.GamesBack = ((leaderWins - team.Wins) + (team.Losses - leaderLosses)) / 2.0f;
             std::ostringstream oss;
             oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses;
@@ -113,10 +114,10 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
 
 void Application::renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
     std::vector<MarketApi::EquityInfo> equities;
+    equities.reserve(stocksToRetrieve.size());
     int x = display.getCursorX();
     int y = display.getCursorY() - FONT_HEIGHT;
     _lastStockInfoRunTime = time(NULL);
-    Serial.println("Fetching market info...");
     getMarketInfo(stocksToRetrieve, equities);
     for (const auto& equity : equities) {
         std::ostringstream oss;
@@ -138,7 +139,6 @@ void Application::renderBlynkInfo(Adafruit_GFX& display) {
     _lastBlynkRunTime = time(NULL);
     int x = display.getCursorX();
     int y = display.getCursorY() - FONT_HEIGHT;
-    Serial.println("Fetching Blynk info...");
     std::string blynkValue = getBlynkValue();
     display.setCursor(display.getCursorX(), display.getCursorY() + FONT_HEIGHT);
     display.printString(std::string("Freezer Temp: " + blynkValue).c_str());
@@ -158,7 +158,7 @@ void Application::renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScri
     int y = display.getCursorY() - FONT_HEIGHT;
     std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> > googleInfo;
     getGoogleInfo(googleInfo);
-    Serial.printf("Retrieved %d tasks and %d stocks\n", (int)googleInfo.first.size(), (int)googleInfo.second.size());
+    googleInfo.first.reserve(10);
     display.setCursor(x, FONT_HEIGHT);
     for (const auto& task : googleInfo.first) {
         display.printString(task.title.c_str());
@@ -171,7 +171,6 @@ void Application::renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScri
     char buffer[20];
     strftime(buffer, sizeof(buffer), "%H:%M", timeinfo);
     display.printString(buffer);
-
 
     stocksToRetrieve = googleInfo.second;
 }

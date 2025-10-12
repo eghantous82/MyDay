@@ -5,11 +5,12 @@
 #include <opencv2/imgcodecs.hpp>
 
 MockEpaperDisplay::MockEpaperDisplay(int16_t w, int16_t h) : Adafruit_GFX(w, h), _width(w), _height(h) {
-    buffer.resize(w * h, 0);
+    buffer.reserve(w * h);
+    buffer.assign(w * h, 0);
 }
 
 void MockEpaperDisplay::printString(const std::string& str) {
-    for (char c : str) {
+    for (const char& c : str) {
         write(static_cast<uint8_t>(c));
     }
 }

@@ -91,10 +91,6 @@ void loop() {
 
   for (int i = 0; i < 4; i++)
   {
-    Serial.printf("Updating area %d at (%d, %d) size (%d x %d)\n",
-                  i, displayAreas[i].x, displayAreas[i].y,
-                  displayAreas[i].w, displayAreas[i].h);
-
     // Set partial window for this quadrant
     display.setPartialWindow(
       displayAreas[i].x,
