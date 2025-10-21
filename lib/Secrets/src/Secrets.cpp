@@ -20,7 +20,7 @@ Secrets::Secrets(const std::string& jsonString) {
 std::string Secrets::getBlynkAuthToken() {
 	return _doc["blynk"].as<std::string>();
 }
-std::string Secrets::getMlbApiKey() {
+std::string Secrets::getSportsIoApiKey() {
 	return _doc["sportsio"].as<std::string>();
 }
 std::string Secrets::getMarketApiKey() {

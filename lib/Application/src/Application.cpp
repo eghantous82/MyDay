@@ -26,6 +26,21 @@ bool Application::shouldUpdateMlb() {
     return true;
 }
 
+bool Application::shouldUpdateNhl() {
+    time_t currentTime = time(NULL);
+    struct tm* timeinfo = localtime(&currentTime);
+    if(_lastNhlRunTime != 0) {
+        if (timeinfo->tm_hour < 7) {
+            return false;
+        }
+
+        if (difftime(currentTime, _lastNhlRunTime) < 60 * 60 * 4) {
+            return false; // Skip if last update was less than 4 hours ago
+        }
+    }
+    return true;
+}
+
 bool Application::shouldUpdateMarket() {
     time_t currentTime = time(NULL);
     struct tm* timeinfo = localtime(&currentTime);
@@ -108,8 +123,30 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
     char buffer[20];
     strftime(buffer, sizeof(buffer), "%H:%M", timeinfo);
     display.printString(buffer);
+}
 
+void Application::renderNhlInfo(Adafruit_GFX& display) {
+    _lastNhlRunTime = time(NULL);
+    std::vector<NhlApi::TeamStanding> leagueStandings;
+    getNhlInfo(leagueStandings);
+    leagueStandings.reserve(32); // Typical league size
+    int x = display.getCursorX();
+    int y = display.getCursorY() - FONT_HEIGHT;
+    if (!leagueStandings.empty()) {
+        for (const auto& team : leagueStandings) {
+            std::ostringstream oss;
+            oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+            display.printString(oss.str().c_str());
+            display.setCursor(x, display.getCursorY() + FONT_HEIGHT);
+        }
+    }
 
+    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT);
+    // Display last updated time    
+    struct tm* timeinfo = localtime(&_lastNhlRunTime);
+    char buffer[20];
+    strftime(buffer, sizeof(buffer), "%H:%M", timeinfo);
+    display.printString(buffer);
 }
 
 void Application::renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
@@ -195,8 +232,14 @@ void Application::getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksT
 void Application::getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
     std::vector<MlbApi::TeamStanding>& alEastStandings)
 {
-    MlbApi api(_secrets.getMlbApiKey());
+    MlbApi api(_secrets.getSportsIoApiKey());
     api.getStandings(_retriever, "AL", "East", alEastStandings, alStandings);
+}
+
+void Application::getNhlInfo(std::vector<NhlApi::TeamStanding>& leagueStandings)
+{
+    NhlApi api(_secrets.getSportsIoApiKey());
+    api.getStandings(_retriever, leagueStandings);
 }
 
 std::string Application::getBlynkValue()

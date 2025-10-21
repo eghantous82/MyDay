@@ -10,7 +10,7 @@ public:
     Secrets(const std::string& jsonString);
 #endif
     std::string getBlynkAuthToken();
-    std::string getMlbApiKey();
+    std::string getSportsIoApiKey();
     std::string getMarketApiKey();
     std::string getGoogleTasksUrl();
     std::string getLoggerUrl();

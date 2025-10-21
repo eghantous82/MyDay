@@ -10,6 +10,7 @@
 #include "Api/src/MarketApi.h"
 #include "Api/src/BlynkApi.h"
 #include "Api/src/MlbApi.h"
+#include "Api/src/NhlApi.h"
 #include "Secrets/src/Secrets.h"
 #include "Api/src/GoogleScriptApi.h"
 
@@ -28,11 +29,13 @@ public:
         _quadrantWidth(quadrantWidth) {}
 
     bool shouldUpdateMlb();
+    bool shouldUpdateNhl();
     bool shouldUpdateBlynk();
     bool shouldUpdateGoogle();
     bool shouldUpdateMarket();
 
     void renderMlbInfo(Adafruit_GFX& display);
+    void renderNhlInfo(Adafruit_GFX& display);
     void renderBlynkInfo(Adafruit_GFX& display);
     void renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
     void renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
@@ -42,6 +45,7 @@ private:
     void getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve, std::vector<MarketApi::EquityInfo>& equities);
     void getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
     std::vector<MlbApi::TeamStanding>& alEastStandings);
+    void getNhlInfo(std::vector<NhlApi::TeamStanding>& leagueStandings);
     void getGoogleInfo(std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> >& googleInfo);
     std::string getBlynkValue();
 
@@ -50,6 +54,7 @@ private:
     time_t         _lastGoogleTaskRunTime;
     time_t         _lastStockInfoRunTime;
     time_t         _lastMlbRunTime;
+    time_t         _lastNhlRunTime;
     time_t         _lastBlynkRunTime;
     unsigned int   _quadrantWidth;
     unsigned int   _quadrantHeight;

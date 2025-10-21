@@ -4,7 +4,7 @@
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 
-std::string Esp32DataRetriever::getMlbData(const std::string& url, const std::string& apiKey) {
+std::string Esp32DataRetriever::getSportsData(const std::string& url, const std::string& apiKey) {
     HTTPClient http;
     std::string readBuffer;
 
