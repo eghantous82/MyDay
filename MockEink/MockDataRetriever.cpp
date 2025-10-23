@@ -9,7 +9,7 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* out
     return totalSize;
 }
 
-std::string MockDataRetriever::getMlbData(const std::string& url, const std::string& apiKey)
+std::string MockDataRetriever::getSportsData(const std::string& url, const std::string& apiKey)
 {
     CURL* curl;
     CURLcode res;
@@ -105,4 +105,9 @@ std::string MockDataRetriever::getBlynkValue(const std::string& url)
     }
 
     return response;
+}
+
+void MockDataRetriever::logToGoogle(const std::string& message)
+{
+    std::cout << "Log to Google: " << message << std::endl;
 }

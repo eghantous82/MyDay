@@ -131,7 +131,7 @@ void loop() {
             app.renderMarketInfo(display, stocksToRetrieve);
             break;
           case 2:
-            app.renderMlbInfo(display);
+            app.renderNhlInfo(display);
             break;
           case 3:
             app.renderBlynkInfo(display);

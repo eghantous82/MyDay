@@ -1,6 +1,7 @@
 #pragma once
 #include <ArduinoJson.h>
 #include <vector>
+#include <map>
 
 #include "IDataRetriever.h"
 
@@ -16,7 +17,7 @@ public:
     NhlApi(const std::string& apiKey = "") : _apiKey(apiKey) {}
 
     void getStandings(IDataRetriever& retriever,
-        std::vector<TeamStanding>& teamsStandings);
+        std::map<std::string, std::vector<NhlApi::TeamStanding> >& teamsStandings);
 
 private:   
     std::string _apiKey;

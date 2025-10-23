@@ -45,7 +45,7 @@ private:
     void getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve, std::vector<MarketApi::EquityInfo>& equities);
     void getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
     std::vector<MlbApi::TeamStanding>& alEastStandings);
-    void getNhlInfo(std::vector<NhlApi::TeamStanding>& leagueStandings);
+    void getNhlInfo(std::map<std::string, std::vector<NhlApi::TeamStanding> >& leagueStandings);
     void getGoogleInfo(std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> >& googleInfo);
     std::string getBlynkValue();
 

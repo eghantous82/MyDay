@@ -127,16 +127,42 @@ void Application::renderMlbInfo(Adafruit_GFX& display) {
 
 void Application::renderNhlInfo(Adafruit_GFX& display) {
     _lastNhlRunTime = time(NULL);
-    std::vector<NhlApi::TeamStanding> leagueStandings;
+    std::map<std::string, std::vector<NhlApi::TeamStanding> > leagueStandings;
     getNhlInfo(leagueStandings);
-    leagueStandings.reserve(32); // Typical league size
     int x = display.getCursorX();
     int y = display.getCursorY() - FONT_HEIGHT;
     if (!leagueStandings.empty()) {
-        for (const auto& team : leagueStandings) {
-            std::ostringstream oss;
-            oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
-            display.printString(oss.str().c_str());
+        for (size_t i = 0; i < 4; ++i) {
+            {
+                std::ostringstream oss;
+                const auto& team = leagueStandings["Atlantic"][i];
+                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+                display.printString(oss.str().c_str());
+            }
+            display.setCursor(x + 200, display.getCursorY());
+            {
+                std::ostringstream oss;
+                const auto& team = leagueStandings["Metropolitan"][i];
+                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+                display.printString(oss.str().c_str());
+            }
+            display.setCursor(x, display.getCursorY() + FONT_HEIGHT);
+        }
+        display.setCursor(x, display.getCursorY() + FONT_HEIGHT); // Extra space between divisions
+        for (size_t i = 0; i < 4; ++i) {
+            {
+                std::ostringstream oss;
+                const auto& team = leagueStandings["Central"][i];
+                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+                display.printString(oss.str().c_str());
+            }
+            display.setCursor(x + 200, display.getCursorY());
+            {
+                std::ostringstream oss;
+                const auto& team = leagueStandings["Pacific"][i];
+                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+                display.printString(oss.str().c_str());
+            }
             display.setCursor(x, display.getCursorY() + FONT_HEIGHT);
         }
     }
@@ -236,7 +262,7 @@ void Application::getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
     api.getStandings(_retriever, "AL", "East", alEastStandings, alStandings);
 }
 
-void Application::getNhlInfo(std::vector<NhlApi::TeamStanding>& leagueStandings)
+void Application::getNhlInfo(std::map<std::string, std::vector<NhlApi::TeamStanding> >& leagueStandings)
 {
     NhlApi api(_secrets.getSportsIoApiKey());
     api.getStandings(_retriever, leagueStandings);
