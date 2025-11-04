@@ -4,24 +4,8 @@
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 
-std::string Esp32DataRetriever::getSportsData(const std::string& url, const std::string& apiKey) {
-    HTTPClient http;
-    std::string readBuffer;
-
-    http.begin(url.c_str()); // Initialize HTTP request
-    http.addHeader("Ocp-Apim-Subscription-Key", apiKey.c_str()); // Add API key header
-
-    int httpCode = http.GET(); // Send GET request
-
-    if (httpCode > 0) {
-        String payload = http.getString();
-        readBuffer = payload.c_str(); // Convert Arduino String to std::string
-    } else {
-        readBuffer = "";
-    }
-
-    http.end(); // Close connection
-    return readBuffer;
+std::string Esp32DataRetriever::getSportsData(const std::string& url) {
+    return retieveGoogleScriptResponse(url);
 }
 
 
@@ -70,6 +54,23 @@ std::string Esp32DataRetriever::getBlynkValue(const std::string& url) {
 }
 
 std::string Esp32DataRetriever::getGoogleTasks(const std::string& url) {
+    return retieveGoogleScriptResponse(url);
+}
+
+void Esp32DataRetriever::logToGoogle(const std::string& message) {
+    HTTPClient http;
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    if (!http.begin(_logUrl.c_str())) {
+      return; // Return if failure to connect
+    }
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Accept", "*/*");
+    String jsonMessage = String("{\"message\":\"") + String(message.c_str()) + String("\"}");
+    int returnCode = http.POST(jsonMessage);
+    http.end();
+}
+
+std::string Esp32DataRetriever::retieveGoogleScriptResponse(const std::string& url) {
     HTTPClient http;
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     if (!http.begin(url.c_str())) {
@@ -84,15 +85,6 @@ std::string Esp32DataRetriever::getGoogleTasks(const std::string& url) {
     return response.c_str();
 }
 
-void Esp32DataRetriever::logToGoogle(const std::string& message) {
-    HTTPClient http;
-    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-    if (!http.begin(_logUrl.c_str())) {
-      return; // Return if failure to connect
-    }
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Accept", "*/*");
-    String jsonMessage = String("{\"message\":\"") + String(message.c_str()) + String("\"}");
-    int returnCode = http.POST(jsonMessage);
-    http.end();
+std::string Esp32DataRetriever::getGoogleCalendarEvents(const std::string& url) {
+    return retieveGoogleScriptResponse(url);
 }

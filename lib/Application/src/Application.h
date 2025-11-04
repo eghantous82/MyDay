@@ -25,6 +25,7 @@ public:
         _lastGoogleTaskRunTime(0),
         _lastMlbRunTime(0),
         _lastStockInfoRunTime(0),
+        _lastNhlRunTime(0),
         _quadrantHeight(quadrantHeight),
         _quadrantWidth(quadrantWidth) {}
 
@@ -47,6 +48,7 @@ private:
     std::vector<MlbApi::TeamStanding>& alEastStandings);
     void getNhlInfo(std::map<std::string, std::vector<NhlApi::TeamStanding> >& leagueStandings);
     void getGoogleInfo(std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> >& googleInfo);
+    void getGoogleCalendarEvents(std::vector<GoogleScriptApi::Event>& events);
     std::string getBlynkValue();
 
     IDataRetriever& _retriever;

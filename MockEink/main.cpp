@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
             update = app.shouldUpdateMarket();
             break;
         case 2:
-            update = app.shouldUpdateMlb();
+            update = app.shouldUpdateNhl();
             break;
         case 3:
             update = app.shouldUpdateBlynk();
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
                 app.renderGoogleInfo(display, stocksToRetrieve);
                 break;
             case 1:
-                app.renderMarketInfo(display, stocksToRetrieve);
+                //app.renderMarketInfo(display, stocksToRetrieve);
                 break;
             case 2:
                 app.renderNhlInfo(display);

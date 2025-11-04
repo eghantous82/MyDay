@@ -1,16 +1,15 @@
 #include <GxEPD2_BW.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include <WiFi.h>
+#include <Preferences.h>
 #include <time.h>
 #include "Application.h"
 #include "SecretTokens.h"
 #include "Secrets.h"
 #include "Esp32DataRetriever.h"
 
-#ifdef ARDUINO
 #define printString print
 #include <GxEPD2_BW.h>
-#endif
 
 /**
  * @brief Represents a single display area with its update schedule.
@@ -22,6 +21,7 @@ struct DisplayArea {
 
 const int DISPLAY_AREA_WIDTH = 800 / 2;  // 400
 const int DISPLAY_AREA_HEIGHT = 480 / 2; // 240
+const int MEMORY_STATS_HEIGHT = 25;
 
 DisplayArea displayAreas[] = {
   // Area 1: Top left (0–399 x 0–239)
@@ -31,11 +31,55 @@ DisplayArea displayAreas[] = {
   {DISPLAY_AREA_WIDTH, 0, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT},
 
   // Area 3: Bottom left (0–399 x 240–479)
-  {0, DISPLAY_AREA_HEIGHT, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT},
+  {0, DISPLAY_AREA_HEIGHT, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT - MEMORY_STATS_HEIGHT},
 
-  // Area 4: Bottom right (400–799 x 240–479)
-  {DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT}
+  // Area 4: Bottom right (400–799 x 240–459)
+  {DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT - MEMORY_STATS_HEIGHT},
+
+   // Area 5: Bottom right (400–799 x 460–479)
+  {0, 480-MEMORY_STATS_HEIGHT, 800, MEMORY_STATS_HEIGHT},
+
 };
+
+GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(/*CS=*/3, /*DC=*/5, /*RST=*/2, /*BUSY=*/4));
+
+Secrets secrets(SECRET_TOKENS);
+Esp32DataRetriever retriever(secrets.getLoggerUrl());
+Application app(retriever, secrets, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT);
+
+
+void drawMemoryStats(Adafruit_GFX &display) {
+  // Stack usage
+  UBaseType_t watermarkWords = uxTaskGetStackHighWaterMark(NULL);
+  size_t watermarkBytes = watermarkWords * sizeof(StackType_t);
+  const size_t totalStackBytes = CONFIG_ARDUINO_LOOP_STACK_SIZE;
+  size_t usedStackBytes = totalStackBytes - watermarkBytes;
+  float stackPercent = (float)usedStackBytes / totalStackBytes * 100;
+  Serial.println("Stack usage calculated");
+  // Heap usage
+  size_t freeHeap = ESP.getFreeHeap();
+  size_t minFreeHeap = ESP.getMinFreeHeap();
+  size_t maxAllocHeap = ESP.getMaxAllocHeap();
+
+  Serial.println("Got all the stats");
+  // Format output
+  char buffer[128];
+  snprintf(buffer, sizeof(buffer),
+    "S: %u/%u (%.1f%%) | "
+    "H:  %u fr | "
+    "Min: %u | "
+    "MaxBlk:%u",
+    usedStackBytes, totalStackBytes, stackPercent,
+    freeHeap,
+    minFreeHeap,
+    maxAllocHeap
+  );
+
+  Serial.println(buffer);
+  // Display or log
+  display.printString(buffer);
+}
+
 
 void syncTime() {
   // Configure NTP client with a server and wait for synchronization.
@@ -55,12 +99,6 @@ void syncTime() {
   }
 }
 
-GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(/*CS=*/3, /*DC=*/5, /*RST=*/2, /*BUSY=*/4));
-
-Secrets secrets(SECRET_TOKENS);
-Esp32DataRetriever retriever(secrets.getLoggerUrl());
-Application app(retriever, secrets, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT);
-
 void setup() {
   delay(2000); // Wait for the display to stabilize
   
@@ -79,6 +117,8 @@ void setup() {
   display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
   display.setFullWindow();
+
+  // Normal initialization: clear the display to a known blank state.
   display.firstPage();
   do {
     display.fillScreen(GxEPD_WHITE);
@@ -88,8 +128,8 @@ void setup() {
 
 void loop() {
   std::vector<GoogleScriptApi::StockInfo> stocksToRetrieve;
-
-  for (int i = 0; i < 4; i++)
+  static int loopCount = 0;
+  for (int i = 0; i < 5; i++)
   {
     // Set partial window for this quadrant
     display.setPartialWindow(
@@ -110,11 +150,15 @@ void loop() {
         update = app.shouldUpdateMarket();
         break;
       case 2:
-        update = app.shouldUpdateMlb();
+        update = app.shouldUpdateNhl();
         break;
       case 3:
         update = app.shouldUpdateBlynk();
         break;
+      case 4:
+        if(loopCount % 60 == 0) { // Update every 60 loops
+          update = true;
+        }
     }
 
     // Only refresh if something was drawn
@@ -136,9 +180,14 @@ void loop() {
           case 3:
             app.renderBlynkInfo(display);
             break;
+          case 4:
+            drawMemoryStats(display);
+            break;
         }
       } while (display.nextPage());
     }
   }
   delay(1000); // Optional: slow down loop
+  loopCount++;
 }
+

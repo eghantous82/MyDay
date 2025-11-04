@@ -30,12 +30,8 @@ bool Application::shouldUpdateNhl() {
     time_t currentTime = time(NULL);
     struct tm* timeinfo = localtime(&currentTime);
     if(_lastNhlRunTime != 0) {
-        if (timeinfo->tm_hour < 7) {
-            return false;
-        }
-
-        if (difftime(currentTime, _lastNhlRunTime) < 60 * 60 * 4) {
-            return false; // Skip if last update was less than 4 hours ago
+        if (difftime(currentTime, _lastNhlRunTime) < 60 * 60 * 1) {
+            return false; // Skip if last update was less than 24 hours ago
         }
     }
     return true;
@@ -46,7 +42,7 @@ bool Application::shouldUpdateMarket() {
     struct tm* timeinfo = localtime(&currentTime);
     if(_lastStockInfoRunTime != 0) {
         
-        if (difftime(currentTime, _lastStockInfoRunTime) < 60 * 90) {
+        if (difftime(currentTime, _lastStockInfoRunTime) < 60 * 60 *4) {
             return false; // Skip if last update was less than 90 minutes ago
         }
     
@@ -131,43 +127,79 @@ void Application::renderNhlInfo(Adafruit_GFX& display) {
     getNhlInfo(leagueStandings);
     int x = display.getCursorX();
     int y = display.getCursorY() - FONT_HEIGHT;
-    if (!leagueStandings.empty()) {
-        for (size_t i = 0; i < 4; ++i) {
-            {
+    if (!leagueStandings.empty() && leagueStandings.find("Error") == leagueStandings.end()) {
+        // Iterate the Atlantic and Metropolitan vectors using iterators
+        // to avoid copies and out-of-range indexing if a division is
+        // missing or shorter than expected. We'll walk each iterator in
+        // parallel for up to four rows.
+        auto atlIt = leagueStandings.find("Atlantic");
+        auto metroIt = leagueStandings.find("Metropolitan");
+
+        const auto atlEnd = (atlIt != leagueStandings.end()) ? atlIt->second.cend() : std::vector<NhlApi::TeamStanding>().cend();
+        const auto metroEnd = (metroIt != leagueStandings.end()) ? metroIt->second.cend() : std::vector<NhlApi::TeamStanding>().cend();
+
+        auto atlIter = (atlIt != leagueStandings.end()) ? atlIt->second.cbegin() : std::vector<NhlApi::TeamStanding>().cbegin();
+        auto metroIter = (metroIt != leagueStandings.end()) ? metroIt->second.cbegin() : std::vector<NhlApi::TeamStanding>().cbegin();
+
+        const size_t rows = 4;
+        for (size_t row = 0; row < rows; ++row) {
+            if (atlIter != atlEnd) {
                 std::ostringstream oss;
-                const auto& team = leagueStandings["Atlantic"][i];
-                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+                const auto& team = *atlIter;
+                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << "p " << team.GamesPlayed << ")";
                 display.printString(oss.str().c_str());
+                ++atlIter;
             }
-            display.setCursor(x + 200, display.getCursorY());
-            {
+
+            display.setCursor(x + _quadrantWidth/2, display.getCursorY());
+
+            if (metroIter != metroEnd) {
                 std::ostringstream oss;
-                const auto& team = leagueStandings["Metropolitan"][i];
-                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+                const auto& team = *metroIter;
+                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << "p " << team.GamesPlayed << ")";
                 display.printString(oss.str().c_str());
+                ++metroIter;
             }
+
             display.setCursor(x, display.getCursorY() + FONT_HEIGHT);
         }
         display.setCursor(x, display.getCursorY() + FONT_HEIGHT); // Extra space between divisions
-        for (size_t i = 0; i < 4; ++i) {
-            {
+
+        // Iterate Central and Pacific divisions in parallel using iterators
+        auto centIt = leagueStandings.find("Central");
+        auto pacIt = leagueStandings.find("Pacific");
+
+        const auto centEnd = (centIt != leagueStandings.end()) ? centIt->second.cend() : std::vector<NhlApi::TeamStanding>().cend();
+        const auto pacEnd = (pacIt != leagueStandings.end()) ? pacIt->second.cend() : std::vector<NhlApi::TeamStanding>().cend();
+
+        auto centIter = (centIt != leagueStandings.end()) ? centIt->second.cbegin() : std::vector<NhlApi::TeamStanding>().cbegin();
+        auto pacIter = (pacIt != leagueStandings.end()) ? pacIt->second.cbegin() : std::vector<NhlApi::TeamStanding>().cbegin();
+
+        const size_t rows2 = 4;
+        for (size_t row = 0; row < rows2; ++row) {
+            if (centIter != centEnd) {
                 std::ostringstream oss;
-                const auto& team = leagueStandings["Central"][i];
-                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+                const auto& team = *centIter;
+                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << "p " << team.GamesPlayed << ")";
                 display.printString(oss.str().c_str());
+                ++centIter;
             }
             display.setCursor(x + 200, display.getCursorY());
-            {
+            if (pacIter != pacEnd) {
                 std::ostringstream oss;
-                const auto& team = leagueStandings["Pacific"][i];
-                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << " pts)";
+                const auto& team = *pacIter;
+                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << "p " << team.GamesPlayed << ")";
                 display.printString(oss.str().c_str());
+                ++pacIter;
             }
             display.setCursor(x, display.getCursorY() + FONT_HEIGHT);
         }
     }
 
-    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT);
+    else if(leagueStandings.find("Error") != leagueStandings.end()) {
+        display.printString(leagueStandings["Error"][0].Team.c_str());
+    }
+    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT - 25);
     // Display last updated time    
     struct tm* timeinfo = localtime(&_lastNhlRunTime);
     char buffer[20];
@@ -203,10 +235,18 @@ void Application::renderBlynkInfo(Adafruit_GFX& display) {
     int x = display.getCursorX();
     int y = display.getCursorY() - FONT_HEIGHT;
     std::string blynkValue = getBlynkValue();
-    display.setCursor(display.getCursorX(), display.getCursorY() + FONT_HEIGHT);
     display.printString(std::string("Freezer Temp: " + blynkValue).c_str());
-
-    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT);
+    display.setCursor(x, display.getCursorY() + FONT_HEIGHT);
+    // Print Google calendar events
+    std::vector<GoogleScriptApi::Event> events;
+    getGoogleCalendarEvents(events);
+    for (const auto& event : events) {
+        std::ostringstream oss;
+        oss << event._startTime.c_str() << " " << event._summary.c_str();
+        display.printString(oss.str().c_str());
+        display.setCursor(x, display.getCursorY() + FONT_HEIGHT);
+    }
+    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT - 25);
     // Display last updated time    
     struct tm* timeinfo = localtime(&_lastBlynkRunTime);
     char buffer[20];
@@ -258,13 +298,15 @@ void Application::getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksT
 void Application::getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
     std::vector<MlbApi::TeamStanding>& alEastStandings)
 {
+    /*
     MlbApi api(_secrets.getSportsIoApiKey());
     api.getStandings(_retriever, "AL", "East", alEastStandings, alStandings);
+    */
 }
 
 void Application::getNhlInfo(std::map<std::string, std::vector<NhlApi::TeamStanding> >& leagueStandings)
 {
-    NhlApi api(_secrets.getSportsIoApiKey());
+    NhlApi api(_secrets.getNhlStandingsUrl());
     api.getStandings(_retriever, leagueStandings);
 }
 
@@ -272,4 +314,10 @@ std::string Application::getBlynkValue()
 {
     BlynkApi blynkApi(_secrets.getBlynkAuthToken());
     return blynkApi.getVirtualPinValue(_retriever);
+}
+
+void Application::getGoogleCalendarEvents(std::vector<GoogleScriptApi::Event>& events)
+{
+    GoogleScriptApi api("");
+    api.getCalendarEvents(_retriever, _secrets.getGoogleCalendarUrl(), events);
 }

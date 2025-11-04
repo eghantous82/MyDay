@@ -7,12 +7,15 @@ public:
     Esp32DataRetriever(const std::string& logUrl) : _logUrl(logUrl){}
     virtual ~Esp32DataRetriever() = default;
 
-    std::string getSportsData(const std::string& url, const std::string& apiKey) override;
+    std::string getSportsData(const std::string& url) override;
     std::string getStockInfo(const std::string& url, const std::string& apiKey) override;
     std::string getBlynkValue(const std::string& url) override;
     std::string getGoogleTasks(const std::string& url) override;
     void logToGoogle(const std::string& message) override;
+    std::string getGoogleCalendarEvents(const std::string& url) override;
 
 private:
+
+    std::string retieveGoogleScriptResponse(const std::string& url);
     std::string _logUrl;
 };

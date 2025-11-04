@@ -10,9 +10,10 @@ public:
     Secrets(const std::string& jsonString);
 #endif
     std::string getBlynkAuthToken();
-    std::string getSportsIoApiKey();
+    std::string getNhlStandingsUrl();
     std::string getMarketApiKey();
     std::string getGoogleTasksUrl();
+    std::string getGoogleCalendarUrl();
     std::string getLoggerUrl();
 
 private:

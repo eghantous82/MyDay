@@ -20,8 +20,8 @@ Secrets::Secrets(const std::string& jsonString) {
 std::string Secrets::getBlynkAuthToken() {
 	return _doc["blynk"].as<std::string>();
 }
-std::string Secrets::getSportsIoApiKey() {
-	return _doc["sportsio"].as<std::string>();
+std::string Secrets::getNhlStandingsUrl() {
+	return _doc["nhlStandings"].as<std::string>();
 }
 std::string Secrets::getMarketApiKey() {
 	return _doc["rapidapi"].as<std::string>();
@@ -33,4 +33,8 @@ std::string Secrets::getGoogleTasksUrl() {
 
 std::string Secrets::getLoggerUrl() {
 	return _doc["logger"].as<std::string>();
+}
+
+std::string Secrets::getGoogleCalendarUrl() {
+	return _doc["calendar"].as<std::string>();
 }

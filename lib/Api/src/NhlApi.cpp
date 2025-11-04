@@ -5,7 +5,7 @@
 void NhlApi::getStandings(IDataRetriever& retriever, std::map<std::string, std::vector<NhlApi::TeamStanding> >& teamStandings) {
     
     ArduinoJson::JsonDocument doc;
-    std::string data = retriever.getSportsData("https://api.sportsdata.io/v3/nhl/scores/json/Standings/2026", _apiKey);
+    std::string data = retriever.getSportsData(_url);
     if(data.empty()) {
         TeamStanding errorTeam;
         errorTeam.Team = "Error retrieving standings";
@@ -26,21 +26,28 @@ void NhlApi::getStandings(IDataRetriever& retriever, std::map<std::string, std::
         teamStandings["Error"].emplace_back(errorTeam);
         return;
     }
-
+    
     std::vector<std::string> divisions = {"Atlantic", "Metropolitan", "Central", "Pacific"};
 
     for (const auto& division : divisions) {
-        teamStandings[division].reserve(8);
+        teamStandings[division].reserve(4);
     }
 
-    for (const JsonObject& team : doc.as<JsonArray>()) {
-        TeamStanding ts;
-        ts.Team = std::string(team["Key"] | "");
-        ts.Wins = team["Wins"] | 0;
-        ts.Losses = team["Losses"] | 0;
-        std::string division = std::string(team["Division"] | "");
-        int otLosses = team["OvertimeLosses"] | 0;
-        ts.Points = (ts.Wins * 2) + otLosses; // NHL points system
-        teamStandings[division].emplace_back(ts);
+    if (doc.is<JsonObject>()) {
+        // New format: object with division arrays. Iterate known divisions
+        std::vector<std::string> divisions = {"Atlantic", "Metropolitan", "Central", "Pacific"};
+        for (const auto& division : divisions) {
+            if (!doc.containsKey(division.c_str())) continue;
+            JsonArray arr = doc[division.c_str()].as<JsonArray>();
+            for (const JsonObject& t : arr) {
+                TeamStanding ts;
+                ts.Team = std::string(t["teamName"] | "");
+                ts.Wins = t["wins"] | 0;
+                ts.GamesPlayed = t["gamesPlayed"] | 0;
+                ts.Losses = t["losses"] | 0;
+                ts.Points = t["points"] | 0;
+                teamStandings[division].emplace_back(ts);
+            }
+        }
     }
 }
