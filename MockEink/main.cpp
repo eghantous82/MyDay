@@ -67,10 +67,10 @@ int main(int argc, char **argv) {
             display.setCursor(displayAreas[i].x + 5, displayAreas[i].y + 20);
             switch (i) {
             case 0:
-                app.renderGoogleInfo(display, stocksToRetrieve);
+                app.renderGoogleInfo(display);
                 break;
             case 1:
-                //app.renderMarketInfo(display, stocksToRetrieve);
+                //app.renderMarketInfo(display);
                 break;
             case 2:
                 app.renderNhlInfo(display);

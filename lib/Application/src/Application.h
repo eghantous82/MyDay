@@ -38,12 +38,12 @@ public:
     void renderMlbInfo(Adafruit_GFX& display);
     void renderNhlInfo(Adafruit_GFX& display);
     void renderBlynkInfo(Adafruit_GFX& display);
-    void renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
-    void renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve);
+    void renderGoogleInfo(Adafruit_GFX& display);
+    void renderMarketInfo(Adafruit_GFX& display);
 
 private:
 
-    void getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve, std::vector<MarketApi::EquityInfo>& equities);
+    void getMarketInfo(std::vector<MarketApi::EquityInfo>& equities);
     void getMlbInfo(std::vector<MlbApi::TeamStanding>& alStandings,
     std::vector<MlbApi::TeamStanding>& alEastStandings);
     void getNhlInfo(std::map<std::string, std::vector<NhlApi::TeamStanding> >& leagueStandings);
@@ -60,5 +60,7 @@ private:
     time_t         _lastBlynkRunTime;
     unsigned int   _quadrantWidth;
     unsigned int   _quadrantHeight;
+
+    std::vector<GoogleScriptApi::StockInfo> _stocksToRetrieve;
     
 };

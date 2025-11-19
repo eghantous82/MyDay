@@ -146,7 +146,7 @@ void Application::renderNhlInfo(Adafruit_GFX& display) {
             if (atlIter != atlEnd) {
                 std::ostringstream oss;
                 const auto& team = *atlIter;
-                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << "p " << team.GamesPlayed << ")";
+                oss << std::left << std::setw(3) << team.Team << " " << team.Wins << "-" << team.Losses << " " << team.Points << " " << team.GamesPlayed << "";
                 display.printString(oss.str().c_str());
                 ++atlIter;
             }
@@ -156,7 +156,7 @@ void Application::renderNhlInfo(Adafruit_GFX& display) {
             if (metroIter != metroEnd) {
                 std::ostringstream oss;
                 const auto& team = *metroIter;
-                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << "p " << team.GamesPlayed << ")";
+                oss << std::left << std::setw(3) << team.Team << " " << team.Wins << "-" << team.Losses << " " << team.Points << " " << team.GamesPlayed << "";
                 display.printString(oss.str().c_str());
                 ++metroIter;
             }
@@ -180,7 +180,7 @@ void Application::renderNhlInfo(Adafruit_GFX& display) {
             if (centIter != centEnd) {
                 std::ostringstream oss;
                 const auto& team = *centIter;
-                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << "p " << team.GamesPlayed << ")";
+                oss << std::left << std::setw(3) << team.Team << " " << team.Wins << "-" << team.Losses << " " << team.Points << " " << team.GamesPlayed << "";
                 display.printString(oss.str().c_str());
                 ++centIter;
             }
@@ -188,7 +188,7 @@ void Application::renderNhlInfo(Adafruit_GFX& display) {
             if (pacIter != pacEnd) {
                 std::ostringstream oss;
                 const auto& team = *pacIter;
-                oss << std::left << std::setw(3) << team.Team << ": " << team.Wins << "-" << team.Losses << " (" << team.Points << "p " << team.GamesPlayed << ")";
+                oss << std::left << std::setw(3) << team.Team << " " << team.Wins << "-" << team.Losses << " " << team.Points << " " << team.GamesPlayed << "";
                 display.printString(oss.str().c_str());
                 ++pacIter;
             }
@@ -199,7 +199,7 @@ void Application::renderNhlInfo(Adafruit_GFX& display) {
     else if(leagueStandings.find("Error") != leagueStandings.end()) {
         display.printString(leagueStandings["Error"][0].Team.c_str());
     }
-    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT - 25);
+    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT - 20);
     // Display last updated time    
     struct tm* timeinfo = localtime(&_lastNhlRunTime);
     char buffer[20];
@@ -207,13 +207,13 @@ void Application::renderNhlInfo(Adafruit_GFX& display) {
     display.printString(buffer);
 }
 
-void Application::renderMarketInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
+void Application::renderMarketInfo(Adafruit_GFX& display) {
     std::vector<MarketApi::EquityInfo> equities;
-    equities.reserve(stocksToRetrieve.size());
+    equities.reserve(_stocksToRetrieve.size());
     int x = display.getCursorX();
     int y = display.getCursorY() - FONT_HEIGHT;
     _lastStockInfoRunTime = time(NULL);
-    getMarketInfo(stocksToRetrieve, equities);
+    getMarketInfo(equities);
     for (const auto& equity : equities) {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(2);
@@ -246,7 +246,7 @@ void Application::renderBlynkInfo(Adafruit_GFX& display) {
         display.printString(oss.str().c_str());
         display.setCursor(x, display.getCursorY() + FONT_HEIGHT);
     }
-    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT - 25);
+    display.setCursor(x + _quadrantWidth - 80, y + _quadrantHeight - FONT_HEIGHT - 20);
     // Display last updated time    
     struct tm* timeinfo = localtime(&_lastBlynkRunTime);
     char buffer[20];
@@ -255,7 +255,7 @@ void Application::renderBlynkInfo(Adafruit_GFX& display) {
 
 }
 
-void Application::renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve) {
+void Application::renderGoogleInfo(Adafruit_GFX& display) {
     _lastGoogleTaskRunTime = time(NULL);
     int x = display.getCursorX();
     int y = display.getCursorY() - FONT_HEIGHT;
@@ -274,8 +274,10 @@ void Application::renderGoogleInfo(Adafruit_GFX& display, std::vector<GoogleScri
     char buffer[20];
     strftime(buffer, sizeof(buffer), "%H:%M", timeinfo);
     display.printString(buffer);
-
-    stocksToRetrieve = googleInfo.second;
+    if(googleInfo.second.size() > 0)
+    {
+        _stocksToRetrieve = googleInfo.second;
+    }
 }
 
 void Application::getGoogleInfo(std::pair<std::vector<GoogleScriptApi::Task>, std::vector<GoogleScriptApi::StockInfo> >& googleInfo)
@@ -284,11 +286,11 @@ void Application::getGoogleInfo(std::pair<std::vector<GoogleScriptApi::Task>, st
     googleInfo = api.getTasksAndStocks(_retriever);
 }
 
-void Application::getMarketInfo(std::vector<GoogleScriptApi::StockInfo>& stocksToRetrieve, std::vector<MarketApi::EquityInfo>& equities)
+void Application::getMarketInfo(std::vector<MarketApi::EquityInfo>& equities)
 {
     // Symbol to Name map
     std::map<std::string, std::string> symbolsToNames;
-    for(const auto& stock : stocksToRetrieve) {
+    for(const auto& stock : _stocksToRetrieve) {
         symbolsToNames[stock.ticker] = stock.displayName;
     }
     MarketApi marketApi(_secrets.getMarketApiKey());

@@ -23,23 +23,30 @@ void MarketApi::getEquityInfo(
         return escaped.str();
     };
 
+    if(equitiesMap.empty()) {
+        equities.emplace_back(EquityInfo{"Error", 1.0, 1.0, 1.0});
+        return;
+    }
     std::ostringstream oss;
-    retriever.logToGoogle("TTG " + equitiesMap.size());
     for (auto it = equitiesMap.begin(); it != equitiesMap.end(); ++it) {
         if (it != equitiesMap.begin()) {
             oss << ",";
         }
-        retriever.logToGoogle("Adding " + it->first);
         oss << urlEncode(it->first);
     }
     std::string url = "https://yahoo-finance15.p.rapidapi.com/api/v1/markets/stock/quotes?ticker=" + oss.str();
     retriever.logToGoogle("Retrieving url: " + url);
     std::string json = retriever.getStockInfo(url, _apiKey);
+    if(json.empty()) {
+        equities.emplace_back(EquityInfo{"Error", 2.0, 2.0, 2.0});
+        return;
+    }
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, json);
 
     if (error) {
-        equities.emplace_back(EquityInfo{"Error", 0.0, 0.0, 0.0});
+        
+        equities.emplace_back(EquityInfo{error.c_str(), 0.0, 0.0, 0.0});
         return;
     }
 

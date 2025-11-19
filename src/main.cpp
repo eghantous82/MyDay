@@ -21,7 +21,7 @@ struct DisplayArea {
 
 const int DISPLAY_AREA_WIDTH = 800 / 2;  // 400
 const int DISPLAY_AREA_HEIGHT = 480 / 2; // 240
-const int MEMORY_STATS_HEIGHT = 25;
+const int MEMORY_STATS_HEIGHT = 20;
 
 DisplayArea displayAreas[] = {
   // Area 1: Top left (0–399 x 0–239)
@@ -37,7 +37,7 @@ DisplayArea displayAreas[] = {
   {DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT, DISPLAY_AREA_WIDTH, DISPLAY_AREA_HEIGHT - MEMORY_STATS_HEIGHT},
 
    // Area 5: Bottom right (400–799 x 460–479)
-  {0, 480-MEMORY_STATS_HEIGHT, 800, MEMORY_STATS_HEIGHT},
+  {0, 480-MEMORY_STATS_HEIGHT-15, 800, MEMORY_STATS_HEIGHT + 15},
 
 };
 
@@ -127,7 +127,6 @@ void setup() {
 }
 
 void loop() {
-  std::vector<GoogleScriptApi::StockInfo> stocksToRetrieve;
   static int loopCount = 0;
   for (int i = 0; i < 5; i++)
   {
@@ -169,10 +168,10 @@ void loop() {
         display.setCursor(displayAreas[i].x + 5, displayAreas[i].y + 20);
         switch (i) {
           case 0:
-            app.renderGoogleInfo(display, stocksToRetrieve);
+            app.renderGoogleInfo(display);
             break;
           case 1:
-            app.renderMarketInfo(display, stocksToRetrieve);
+            app.renderMarketInfo(display);
             break;
           case 2:
             app.renderNhlInfo(display);

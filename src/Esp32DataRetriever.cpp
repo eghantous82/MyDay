@@ -22,8 +22,7 @@ std::string Esp32DataRetriever::getStockInfo(const std::string& url, const std::
     int httpCode = http.GET(); // Send GET request
 
     if (httpCode > 0) {
-        String payload = http.getString();
-        readBuffer = payload.c_str(); // Convert Arduino String to std::string
+        readBuffer = http.getString().c_str();
     } else {
         readBuffer = "";
     }
